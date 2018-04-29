@@ -1,0 +1,13 @@
+name: chaha
+version: 0.1.0
+
+authors:
+  - masukomi <masukomi@masukomi.org>
+
+targets:
+  chaha:
+    main: src/chaha.cr
+
+crystal: 0.23.1
+
+license: MIT

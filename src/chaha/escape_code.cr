@@ -391,12 +391,29 @@ module Chaha
     def to_span() : String
       span = String.build do |str|
         str << "<span style=\""
+        str << generate_background_string()
+        str << generate_foreground_string()
+        str << generate_styles_string(styles)
+        str << "\">"
+      end
+    end
+
+    private def generate_background_string() : String
         if ! background_color.nil? && background_color != ""
-          str << "background-color: #{background_color}; "
+          "background-color: #{background_color}; "
+        else
+          ""
         end
-        if ! foreground_color.nil? && foreground_color != ""
-          str << "color: #{foreground_color}; "
-        end
+    end
+    private def generate_foreground_string() : String
+      if ! foreground_color.nil? && foreground_color != ""
+         "color: #{foreground_color}; "
+      else
+        ""
+      end
+    end
+    private def generate_styles_string(styles : Array(Int32)) : String
+      response = String.build do |str|
         styles.each do |style_int|
           effects = FORMATTING_EFFECT_LOOKUP[style_int]
           is_reset = RESET_SEQ_INTS.includes? style_int
@@ -418,19 +435,17 @@ module Chaha
             # hidden
               str << "display: #{is_reset ? "inline" : "none;"}; "
             end
-
           end
         end
-        str << "\">"
       end
+      response
     end
 
-
-    def extract_ints(string) : Array(Int32)
+    private def extract_ints(string) : Array(Int32)
       string.split(/\D+/).select{|x| x != ""}.map{|x| x.to_i}
     end
 
-    def extract_eight_bit_color(m : Regex::MatchData?) : String
+    private def extract_eight_bit_color(m : Regex::MatchData?) : String
       return "" if m.nil?
       string_num = m.as(Regex::MatchData)[1]
       if EIGHT_BIT_LOOKUP.has_key? string_num
@@ -440,13 +455,13 @@ module Chaha
         return ""
       end
     end
-    def extract_rgb_color(m : Regex::MatchData?) : String
+    private def extract_rgb_color(m : Regex::MatchData?) : String
         return "" if m.nil?
         rgb = m.as(Regex::MatchData)
         "rgb(#{rgb[0]},#{rgb[1]},#{rgb[2]})"
     end
 
-    def extract_foreground_color(string : String) : String
+    private def extract_foreground_color(string : String) : String
       # 38;5;<num> => 8 bit foreground color
       m = string.match(/38;5;(\d+)/)
       return extract_eight_bit_color(m) if ! m.nil?
@@ -472,7 +487,7 @@ module Chaha
       ""
     end
 
-    def extract_background_color(string : String) : String
+    private def extract_background_color(string : String) : String
       # 48;5;<num> => 8 bit background color
       m = string.match(/48;5;(\d+)/)
       return extract_eight_bit_color(m) if ! m.nil?

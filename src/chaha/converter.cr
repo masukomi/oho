@@ -93,7 +93,7 @@ module Chaha
            first_char = false
           end
           break if char == '\u{0}' # EOL char
-          STDERR.puts("1: char.hash: #{char.hash} char: #{char}")
+          STDERR.puts("1: char.hash: #{char.hash} ord: #{char.ord} char: #{char}")
           if char == '\e' || char.hash == 27# \033 == \e
             # Saving old values
             styling.save_old_values
@@ -101,20 +101,20 @@ module Chaha
             # searching the end (a letter) and safe the insert
             # TODO: handle bad input better
             char, reader = get_next_char(reader) # if we're here there should be more following
-            STDERR.puts("2: char.hash: #{char.hash} char: #{char}")
+            STDERR.puts("2: char.hash: #{char.hash} ord: #{char.ord} char: #{char}")
             if ( char == '[' )
               reader = handle_left_square_bracket(char, reader, styling, str)
             elsif char == ']' # Operating System Command (OSC), ignoring for now
               while (char.hash != 2 && char.hash != 7 ) # STX and BEL end an OSC.
                 char, reader = get_next_char(reader)
-                STDERR.puts("3: char.hash: #{char.hash} char: #{char}")
+                STDERR.puts("3: char.hash: #{char.hash} ord: #{char.ord} char: #{char}")
               end
             elsif char == ')' # Some VT100 ESC sequences, which should be ignored
               # Reading (and ignoring!) one character should work for "(B"
               # (US ASCII character set), "(A" (UK ASCII character set) and
               # "(0" (Graphic). This whole "standard" is fucked up. Really...
               char, reader = get_next_char(reader);
-              STDERR.puts("4: char.hash: #{char.hash} char: #{char}")
+              STDERR.puts("4: char.hash: #{char.hash} ord: #{char.ord} char: #{char}")
               if (char == '0') # we do not ignore ESC(0 ;)
                 styling.special_char=true
               else
@@ -154,7 +154,7 @@ module Chaha
                   meow = 1
                   while meow < bits
                     char, reader = get_next_char(reader)
-                    STDERR.puts("5: char.hash: #{char.hash} char: #{char}")
+                    STDERR.puts("5: char.hash: #{char.hash} ord: #{char.ord} char: #{char}")
                     str << char.to_s
                     meow+=1
                   end
@@ -185,6 +185,7 @@ module Chaha
       mom_elem   = nil.as(Pelem?)
       temp       = Pelem.new()
       cr         = Char::Reader.new(s)
+      STDERR.puts("parse_insert for: #{s}")
       while cr.has_next?
         break if cr.pos == 1024
         char = cr.next_char
@@ -377,27 +378,29 @@ module Chaha
                                   str : String::Builder) : Char::Reader
       # CSI code, see https://en.wikipedia.org/wiki/ANSI_escape_code#Colors
       counter = Int8.new(1)
-      buff = String.build do | str |
-        str << "["
+      escape_seq = String.build do | str2 |
+        str2 << "["
         while ((char<'A') || ((char>'Z') && (char<'a')) || (char>'z'))
           char, reader = get_next_char(reader)
-          STDERR.puts("6: char.hash: #{char.hash} char: #{char}")
-          str << char
+          STDERR.puts("6: char.hash: #{char.hash} ord: #{char.ord} char: #{char}")
+          str2 << char
           break if char == '>'
           counter += 1
           break if counter > 1022
         end
         # buffer[counter -1] = 0 # '\u{0}' not needed here
-      end # end constructing buff
-      case char
+      end # end constructing escape_seq
+      case char # what's the last char of the escape sequence?
       when 'm'
-        elem = parse_insert(buff)
+        elem = parse_insert(escape_seq)
+        STDERR.puts "parse_insert response: #{elem.to_s}"
         mom_elem = elem.as(Pelem?)
         while ! mom_elem.nil?
           mom_pos = Int8.new(0)
           while mom_pos < mom_elem.digit_count && mom_elem.digit[mom_pos] == 0
             mom_pos += 1
           end
+          STDERR.puts("mom_pos: #{mom_pos} mom_elem.digit_count: #{mom_elem.digit_count}")
           if mom_pos == mom_elem.digit_count # only zeroes => delete all
             styling.zero_out
           else

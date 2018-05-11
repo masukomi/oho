@@ -11,6 +11,8 @@
 | \e[0;36m | Cyan   |
 | \e[0;37m | White  |
 
+| \e[39m   | Default| <-- yes foreground
+
 # Bold
 
 | Value    | Color  |
@@ -39,16 +41,25 @@
 
 # Background
 
-| Value  | Color  |
-| ------ | ------ |
-| \e[40m | Black  |
-| \e[41m | Red    |
-| \e[42m | Green  |
-| \e[43m | Yellow |
-| \e[44m | Blue   |
-| \e[45m | Purple |
-| \e[46m | Cyan   |
-| \e[47m | White  |
+| Value  | Color     |
+| ------ | ------    |
+| \e[40m | Black     |
+| \e[41m | Red       |
+| \e[42m | Green     |
+| \e[43m | Yellow    |
+| \e[44m | Blue      |
+| \e[45m | Purple    |
+| \e[46m | Cyan      |
+| \e[47m | White     |
+| \e[48m | see below |
+| \e[49m | Default   |
+
+for 48: Next arguments are 5;<n> or 2;<r>;<g>;<b>
+* 5;<n>
+  * 256 colors n is the number of the color
+* 2;<r>;<g>;<b>
+  * rgb color space
+
 
 # High Intensty
 
@@ -94,3 +105,5 @@
 | Value | Color  |
 | ----- | ------ |
 | \e[0m | Reset  |
+
+italic.. `\e[3;<color>m`

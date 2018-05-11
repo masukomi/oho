@@ -23,6 +23,14 @@ class Pelem
     @da_next = nil.as(Pelem?)
   end
 
+  def to_s
+    response = String.build do | str |
+      (0..@digit_count).each do |idx|
+        str << "#{digit[idx]}"
+      end
+    end
+  end
+
 end
 
 

@@ -9,7 +9,11 @@ describe Chaha::Converter do
     c = Chaha::Converter.new(options)
     STDERR.puts("\\033[0;31mhi\\033[0m")
     test_string = "\033[0;31mhi\033[0m"
-    c.process(test_string).should(eq("<span class=\"red\">hi</span>"))
+    response = c.process(test_string)
+    STDERR.puts("response.size: #{response.size}")
+    # c.process(test_string).should(eq("<span class=\"red\">hi</span>"))
+    response.should(eq("<span class=\"red\">hi</span>"))
+
     # c.process("bullshit").should(eq("<span class=\"red\">hi</span>"))
   end
 end

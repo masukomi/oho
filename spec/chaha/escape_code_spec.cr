@@ -1,77 +1,116 @@
 require "../spec_helper"
 
 describe Chaha::EscapeCode do
- it "should extract simple background color" do
+  it "should extract simple background color" do
    ec = Chaha::EscapeCode.new("[44m")
    ec.background_color.should(eq("#3333FF"))
- end
- it "should extract high intensity background color" do
+  end
+  it "should extract high intensity background color" do
    ec = Chaha::EscapeCode.new("[0;100m")
    ec.background_color.should(eq("#000000"))
- end
+  end
   it "should handle bold, italic, underline" do
-    escape_code_string = "[1;3;4;33m" # the \033 or \e will be stripped before
-   1
-   3
-   4
-
-    ec = Chaha::EscapeCode.new(escape_code_string)
-    ec.to_span.should(eq(
-      "<span style=\"color: yellow; font-weight: bold; font-style: italic; text-decoration: underline; \">"))
+   escape_code_string = "[1;3;4;33m" # the \033 or \e will be stripped before
+   ec = Chaha::EscapeCode.new(escape_code_string)
+   ec.to_span(nil).should(eq(
+     "<span style=\"color: yellow; font-weight: bold; font-style: italic; text-decoration: underline; \">"))
   end
 
- it "should recognize high intensity foreground colors" do
+  it "should continue foreground colors" do
+    ec = Chaha::EscapeCode.new("[33m") # foreground
+    prior_ec = Chaha::EscapeCode.new("[43m") #background
+    ec.to_span(prior_ec).should(eq(
+      "</span><span style=\"background-color: yellow; color: yellow; \">"))
+  end
+  it "should not continue superceeded foreground colors" do
+    ec = Chaha::EscapeCode.new("[36m") # foreground
+    prior_ec = Chaha::EscapeCode.new("[33m") #foreground
+    ec.to_span(prior_ec).should(eq(
+      "</span><span style=\"color: aqua; \">"))
+  end
+  it "should continue background colors" do
+    ec = Chaha::EscapeCode.new("[43m") #background
+    prior_ec = Chaha::EscapeCode.new("[33m") # foreground
+    ec.to_span(prior_ec).should(eq(
+      "</span><span style=\"background-color: yellow; color: yellow; \">"))
+  end
+  it "should not continue superceeded background colors" do
+    ec = Chaha::EscapeCode.new("[46m") #background
+    prior_ec = Chaha::EscapeCode.new("[43m") # background
+    ec.to_span(prior_ec).should(eq(
+      "</span><span style=\"background-color: aqua; \">"))
+  end
+  it "should continue styles" do
+    ec = Chaha::EscapeCode.new("[46m") #background
+    prior_ec = Chaha::EscapeCode.new("[1;2;3;4;5;8m") # background
+    ec.to_span(prior_ec).should(eq(
+      "</span><span style=\"background-color: aqua; font-weight: bold; opacity: 0.5; display: none; font-style: italic; text-decoration: underline; \">"))
+
+  end
+  it "should not continue superceeded styles" do
+    ec = Chaha::EscapeCode.new("[46m") #background
+    prior_ec = Chaha::EscapeCode.new("[1;2;3;4;8m") # background
+    ec.to_span(prior_ec).should(eq(
+      "</span><span style=\"background-color: aqua; font-weight: bold; opacity: 0.5; display: none; font-style: italic; text-decoration: underline; \">"))
+  end
+
+  it "isn't expected to support blink or reverse" do
+    ec = Chaha::EscapeCode.new("[5;7;46m")
+    ec.to_span(nil).should(eq("<span style=\"background-color: aqua; \">"))
+  end
+
+  it "should recognize high intensity foreground colors" do
    ec = Chaha::EscapeCode.new("[0;90m")
    ec.foreground_color.should(eq("#000000"))
    ec.background_color.should(eq(""))
- end
- it "should recognize simple foreground colors" do
+  end
+  it "should recognize simple foreground colors" do
    ec = Chaha::EscapeCode.new("[0;30m")
    ec.foreground_color.should(eq("dimgray"))
    ec.background_color.should(eq(""))
- end
- it "should know about default foreground color" do
+  end
+  it "should know about default foreground color" do
    ec = Chaha::EscapeCode.new("[39m")
    ec.foreground_color.should(eq("initial"))
    ec.background_color.should(eq(""))
- end
- it "should know 256 color 39 isn't default foreground" do
+  end
+  it "should know 256 color 39 isn't default foreground" do
    ec = Chaha::EscapeCode.new("[38;5;39m")
    ec.foreground_color.should(eq("#00afff"))
    ec.background_color.should(eq(""))
- end
+  end
 
    it "should know about default background color" do
    ec = Chaha::EscapeCode.new("[49m")
    ec.foreground_color.should(eq(""))
    ec.background_color.should(eq("initial"))
- end
- it "should know 256 color 49 isn't default foreground" do
+  end
+  it "should know 256 color 49 isn't default foreground" do
    ec = Chaha::EscapeCode.new("[38;5;49m")
    ec.foreground_color.should(eq("#00ffaf"))
    ec.background_color.should(eq(""))
- end
- it "should recognize bold foreground colors" do
+  end
+  it "should recognize bold foreground colors" do
    ec = Chaha::EscapeCode.new("[1;36m")
    ec.styles.should(eq([1]))
    ec.foreground_color.should(eq("aqua"))
    ec.background_color.should(eq(""))
- end
- it "should recognize bold high intensity foreground colors" do
+  end
+  it "should recognize bold high intensity foreground colors" do
    ec = Chaha::EscapeCode.new("[1;90m")
    ec.styles.should(eq([1]))
    ec.background_color.should(eq(""))
- end
- it "should recognize underlined foreground colors" do
+  end
+  it "should recognize underlined foreground colors" do
    ec = Chaha::EscapeCode.new("[4;36m")
    ec.styles.should(eq([4]))
    ec.foreground_color.should(eq("aqua"))
- end
- it "should recognize underlined high intestity foreground colors" do
+  end
+  it "should recognize underlined high intestity foreground colors" do
    ec = Chaha::EscapeCode.new("[4;96m")
    ec.styles.should(eq([4]))
    ec.foreground_color.should(eq("#00AAAA"))
    ec.background_color.should(eq(""))
- end
+  end
 
 end

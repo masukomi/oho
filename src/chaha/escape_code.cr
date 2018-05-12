@@ -388,31 +388,56 @@ module Chaha
       end
     end
 
-    def to_span() : String
+    # we take in the last escap_code
+    # in part to know we have to end the prior code
+    # and in part to know what needs to be continued
+    # if it is ended.
+    # if we we to simply nest them and tack a pile of
+    # end spans at the end of the document we'd
+    # give the headaches to the  browser and anyone
+    # reading the source. Headaches are bad.
+    def to_span(escape_code : EscapeCode?) : String
       span = String.build do |str|
+        if ! escape_code.nil?
+          str << "</span>"
+        end
         str << "<span style=\""
-        str << generate_background_string()
-        str << generate_foreground_string()
-        str << generate_styles_string(styles)
+        str << generate_background_string(escape_code)
+        str << generate_foreground_string(escape_code)
+        str << generate_styles_string(styles, escape_code)
         str << "\">"
       end
     end
 
-    private def generate_background_string() : String
+    private def generate_background_string(escape_code : EscapeCode?) : String
         if ! background_color.nil? && background_color != ""
-          "background-color: #{background_color}; "
-        else
-          ""
+          return "background-color: #{background_color}; "
+        elsif !escape_code.nil?
+          ec = escape_code.as(EscapeCode)
+          if !ec.background_color.nil? && ec.background_color != ""
+            return "background-color: #{ec.background_color}; "
+          end
         end
-    end
-    private def generate_foreground_string() : String
-      if ! foreground_color.nil? && foreground_color != ""
-         "color: #{foreground_color}; "
-      else
         ""
-      end
     end
-    private def generate_styles_string(styles : Array(Int32)) : String
+    private def generate_foreground_string(escape_code : EscapeCode?) : String
+      if ! foreground_color.nil? && foreground_color != ""
+         return "color: #{foreground_color}; "
+      elsif ! escape_code.nil?
+          ec = escape_code.as(EscapeCode)
+          if !ec.foreground_color.nil? && ec.foreground_color != ""
+            return "color: #{ec.foreground_color}; "
+          end
+      end
+      ""
+    end
+
+    private def generate_styles_string(styles : Array(Int32),
+                                       escape_code : EscapeCode?) : String
+      if ! escape_code.nil?
+        # continue on with any styles we don't trump
+        styles += (escape_code.as(EscapeCode).styles - styles)
+      end
       response = String.build do |str|
         styles.each do |style_int|
           effects = FORMATTING_EFFECT_LOOKUP[style_int]
@@ -433,7 +458,7 @@ module Chaha
             # blink
               # unsupported in html
             # hidden
-              str << "display: #{is_reset ? "inline" : "none;"}; "
+              str << "display: #{is_reset ? "inline" : "none"}; "
             end
           end
         end

@@ -332,7 +332,7 @@ module Chaha
       21, # reset bold/bright
       22, # reset dim
       23, # reset italic
-      24, # reset underlined
+      24, # reset underline
       25, # reset blink
       27, # reset reverse
       28  # reset hidden
@@ -342,7 +342,7 @@ module Chaha
       1, # bold / bright
       2, # dim
       3, # italic
-      4, # underlined
+      4, # underline
       5, # blink
       7, # reverse foreground and background
       8, # hidden
@@ -350,11 +350,12 @@ module Chaha
 
     FORMATTING_EFFECT_LOOKUP = {
       # int => what it effects
-      0  => [:bold, :dim, :underline, :blink, :reverse, :hidden], # reset
+      0  => [:background, :foreground,
+             :bold, :dim, :italic, :underline, :blink, :reverse, :hidden], # reset
       1  => [:bold],
       2  => [:dim],
       3  => [:italic],
-      4  => [:underlined],
+      4  => [:underline],
       5  => [:blink],
       7  => [:reverse],
       8  => [:hidden],
@@ -374,18 +375,32 @@ module Chaha
     @styles           : Array(Int32)
 
     def initialize(string)
-      @styles = [] of Int32 # reset all
-      if string == "[0m"
-        #TODO FIXME
-        # do something useful here
-      else # not a reset
-        if string.size < 3 || string[0] != '[' || string[-1] != 'm'
-          raise "Invalid escape code: #{string.split("").inspect}"
-        end
-        @background_color = extract_background_color(string)
-        @foreground_color = extract_foreground_color(string)
-        @styles = extract_styling(string)
+      if string.size < 3 || string[0] != '[' || string[-1] != 'm'
+        raise "Invalid escape code: #{string.split("").inspect}"
       end
+      # if the string has a zero code in it that isn't part of
+      # an 8 bit or rgb lookup then everything before it is useless data.
+      # the regexp i want to use is
+      # /.*(?<![34]8;5|[34]8;2(?:;\d+){0,2})[;\[](0[;m])/
+      # but negative lookbehinds must be a fixed width.. SO
+      # this gonna be uuuuuugly
+      # rgb=String.build do  | str |
+      #   (1..3).each do |r|
+      #         str << "|[34]8;2;#{"\\d" * r}"
+      #     (1..3).each do |g|
+      #         str << "|[34]8;2;#{"\\d" * r};#{"\\d" * g}"
+      #       (1..3).each do |b|
+      #         str << "|[34]8;2;#{"\\d" * r};#{"\\d" * g};#{"\\d" * b}"
+      #       end
+      #     end
+      #   end
+      # end
+      # hell_regexp=".*(?<![34]8;5#{rgb})[;\[](0[;m])"
+      hell_regexp=".*(?<![34]8;5|[34]8;2;\\d|[34]8;2;\\d;\\d|[34]8;2;\\d;\\d;\\d|[34]8;2;\\d;\\d;\\d\\d|[34]8;2;\\d;\\d;\\d\\d\\d|[34]8;2;\\d;\\d\\d|[34]8;2;\\d;\\d\\d;\\d|[34]8;2;\\d;\\d\\d;\\d\\d|[34]8;2;\\d;\\d\\d;\\d\\d\\d|[34]8;2;\\d;\\d\\d\\d|[34]8;2;\\d;\\d\\d\\d;\\d|[34]8;2;\\d;\\d\\d\\d;\\d\\d|[34]8;2;\\d;\\d\\d\\d;\\d\\d\\d|[34]8;2;\\d\\d|[34]8;2;\\d\\d;\\d|[34]8;2;\\d\\d;\\d;\\d|[34]8;2;\\d\\d;\\d;\\d\\d|[34]8;2;\\d\\d;\\d;\\d\\d\\d|[34]8;2;\\d\\d;\\d\\d|[34]8;2;\\d\\d;\\d\\d;\\d|[34]8;2;\\d\\d;\\d\\d;\\d\\d|[34]8;2;\\d\\d;\\d\\d;\\d\\d\\d|[34]8;2;\\d\\d;\\d\\d\\d|[34]8;2;\\d\\d;\\d\\d\\d;\\d|[34]8;2;\\d\\d;\\d\\d\\d;\\d\\d|[34]8;2;\\d\\d;\\d\\d\\d;\\d\\d\\d|[34]8;2;\\d\\d\\d|[34]8;2;\\d\\d\\d;\\d|[34]8;2;\\d\\d\\d;\\d;\\d|[34]8;2;\\d\\d\\d;\\d;\\d\\d|[34]8;2;\\d\\d\\d;\\d;\\d\\d\\d|[34]8;2;\\d\\d\\d;\\d\\d|[34]8;2;\\d\\d\\d;\\d\\d;\\d|[34]8;2;\\d\\d\\d;\\d\\d;\\d\\d|[34]8;2;\\d\\d\\d;\\d\\d;\\d\\d\\d|[34]8;2;\\d\\d\\d;\\d\\d\\d|[34]8;2;\\d\\d\\d;\\d\\d\\d;\\d|[34]8;2;\\d\\d\\d;\\d\\d\\d;\\d\\d|[34]8;2;\\d\\d\\d;\\d\\d\\d;\\d\\d\\d)[;[](0[;m])"
+      cleansed_string = string.sub( /#{hell_regexp}/, "\\1")
+      @styles = extract_styling(cleansed_string)
+      @background_color = extract_background_color(cleansed_string)
+      @foreground_color = extract_foreground_color(cleansed_string)
     end
 
     # we take in the last escap_code
@@ -402,14 +417,24 @@ module Chaha
           str << "</span>"
         end
         str << "<span style=\""
+        cleansed_styles = [] of Int32
+        if ! styles.includes? 0
+          cleansed_styles = styles
+        else
+          # throw out anything before the 0
+          idx = styles.index{|x| x == 0}.as(Int32)
+          cleansed_styles = styles[idx..-1]
+        end
+
+        str << generate_styles_string(cleansed_styles, escape_code)
         str << generate_background_string(escape_code)
         str << generate_foreground_string(escape_code)
-        str << generate_styles_string(styles, escape_code)
         str << "\">"
       end
     end
 
     private def generate_background_string(escape_code : EscapeCode?) : String
+
         if ! background_color.nil? && background_color != ""
           return "background-color: #{background_color}; "
         elsif !escape_code.nil?
@@ -434,7 +459,10 @@ module Chaha
 
     private def generate_styles_string(styles : Array(Int32),
                                        escape_code : EscapeCode?) : String
-      if ! escape_code.nil?
+
+      # styles has been cleansed of any styles that preceed the 0
+      # (if present)
+      if (styles.size == 0 || styles.size > 0 && styles[0] != 0 ) && ! escape_code.nil?
         # continue on with any styles we don't trump
         styles += (escape_code.as(EscapeCode).styles - styles)
       end
@@ -447,18 +475,22 @@ module Chaha
               str << "font-weight: #{is_reset ? "normal" : "bold"}; "
             elsif effect == :italic
               str << "font-style: #{is_reset ? "normal" : "italic"}; "
-            elsif effect == :underlined
+            elsif effect == :underline
               # not sure "normal" is a valid thing
               # here but not sure what else to do
-              str << "text-decoration: #{is_reset ? "normal" : "underline"}; "
+              str << "text-decoration: #{is_reset ? "none" : "underline"}; "
             elsif effect == :dim
               str << "opacity: #{is_reset ? "1.0" : "0.5"}; "
             # elsif effect == :reverse
               # unsupported
             # blink
               # unsupported in html
-            # hidden
+            elsif effect == :hidden
               str << "display: #{is_reset ? "inline" : "none"}; "
+            elsif effect == :foreground
+              str << "color: initial; "
+            elsif effect == :background
+              str << "background-color: initial; "
             end
           end
         end
@@ -487,13 +519,15 @@ module Chaha
     end
 
     private def extract_foreground_color(string : String) : String
-      # 38;5;<num> => 8 bit foreground color
       m = string.match(/38;5;(\d+)/)
       return extract_eight_bit_color(m) if ! m.nil?
 
       m = string.match(/38;2;(\d+);(\d+);(\d+)/)
       return extract_rgb_color(m) if ! m.nil?
       ints = extract_ints(string)
+      if ints.size > 0 && ints.last == 0
+        return "none"
+      end
       foreground_ints = FOREGROUND_COLOR_INTS & ints
       if foreground_ints.size > 0
         last = foreground_ints.last
@@ -513,14 +547,16 @@ module Chaha
     end
 
     private def extract_background_color(string : String) : String
-      # 48;5;<num> => 8 bit background color
       m = string.match(/48;5;(\d+)/)
       return extract_eight_bit_color(m) if ! m.nil?
 
-      m = string.match(/38;2;(\d+);(\d+);(\d+)/)
+      m = string.match(/48;2;(\d+);(\d+);(\d+)/)
       return extract_rgb_color(m) if ! m.nil?
       # who knows
-      ints = string.split(/\D+/).select{|x| x != ""}.map{|x| x.to_i}
+      ints = extract_ints(string)
+      if ints.size > 0 && ints.last == 0
+        return "none"
+      end
       background_ints = BACKGROUND_COLOR_INTS & ints
       if background_ints.size > 0
         last = background_ints.last
@@ -529,7 +565,7 @@ module Chaha
         elsif last == 49 && ! string.includes? "38;5;49"
           return SIMPLE_COLOR_LOOKUP[last]
         # else
-          # that's actually a foreground 8 bit lookup
+          # that's actually a background 8 bit lookup
         end
       end
       ""

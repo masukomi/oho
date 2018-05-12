@@ -13,7 +13,7 @@ describe Chaha::EscapeCode do
    escape_code_string = "[1;3;4;33m" # the \033 or \e will be stripped before
    ec = Chaha::EscapeCode.new(escape_code_string)
    ec.to_span(nil).should(eq(
-     "<span style=\"color: yellow; font-weight: bold; font-style: italic; text-decoration: underline; \">"))
+     "<span style=\"font-weight: bold; font-style: italic; text-decoration: underline; color: yellow; \">"))
   end
 
   it "should continue foreground colors" do
@@ -44,14 +44,28 @@ describe Chaha::EscapeCode do
     ec = Chaha::EscapeCode.new("[46m") #background
     prior_ec = Chaha::EscapeCode.new("[1;2;3;4;5;8m") # background
     ec.to_span(prior_ec).should(eq(
-      "</span><span style=\"background-color: aqua; font-weight: bold; opacity: 0.5; display: none; font-style: italic; text-decoration: underline; \">"))
+      "</span><span style=\"font-weight: bold; opacity: 0.5; font-style: italic; text-decoration: underline; display: none; background-color: aqua; \">"))
 
   end
   it "should not continue superceeded styles" do
     ec = Chaha::EscapeCode.new("[46m") #background
     prior_ec = Chaha::EscapeCode.new("[1;2;3;4;8m") # background
     ec.to_span(prior_ec).should(eq(
-      "</span><span style=\"background-color: aqua; font-weight: bold; opacity: 0.5; display: none; font-style: italic; text-decoration: underline; \">"))
+      "</span><span style=\"font-weight: bold; opacity: 0.5; font-style: italic; text-decoration: underline; display: none; background-color: aqua; \">"))
+  end
+  it "0 resets all" do
+    ec = Chaha::EscapeCode.new("[0m") #reset all the things
+    prior_ec = Chaha::EscapeCode.new("[1;2;3;4;8m") # background
+    ec.to_span(prior_ec).should(eq(
+      "</span><span style=\"background-color: initial; color: initial; font-weight: normal; opacity: 1.0; font-style: normal; text-decoration: none; display: inline; background-color: none; color: none; \">"))
+
+  end
+  it "0 resets all and can be trumped" do
+    ec = Chaha::EscapeCode.new("[0;46m") #reset all the things
+    prior_ec = Chaha::EscapeCode.new("[1;2;3;4;8m") # background
+    ec.to_span(prior_ec).should(eq(
+      "</span><span style=\"background-color: initial; color: initial; font-weight: normal; opacity: 1.0; font-style: normal; text-decoration: none; display: inline; background-color: aqua; \">"))
+
   end
 
   it "isn't expected to support blink or reverse" do

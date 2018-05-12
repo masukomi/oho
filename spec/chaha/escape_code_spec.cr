@@ -55,16 +55,16 @@ describe Chaha::EscapeCode do
   end
   it "0 resets all" do
     ec = Chaha::EscapeCode.new("[0m") #reset all the things
-    prior_ec = Chaha::EscapeCode.new("[1;2;3;4;8m") # background
-    ec.to_span(prior_ec).should(eq(
-      "</span><span style=\"background-color: initial; color: initial; font-weight: normal; opacity: 1.0; font-style: normal; text-decoration: none; display: inline; background-color: none; color: none; \">"))
+    prior_ec = Chaha::EscapeCode.new("[1;2;3;4;8;36;46m")
+    ec.to_span(prior_ec).should(eq( "</span><span style=\"\">"))
+      # "</span><span style=\"background-color: initial; color: initial; font-weight: normal; opacity: 1.0; font-style: normal; text-decoration: none; display: inline; background-color: none; color: none; \">"))
 
   end
   it "0 resets all and can be trumped" do
     ec = Chaha::EscapeCode.new("[0;46m") #reset all the things
     prior_ec = Chaha::EscapeCode.new("[1;2;3;4;8m") # background
-    ec.to_span(prior_ec).should(eq(
-      "</span><span style=\"background-color: initial; color: initial; font-weight: normal; opacity: 1.0; font-style: normal; text-decoration: none; display: inline; background-color: aqua; \">"))
+    ec.to_span(prior_ec).should(eq( "</span><span style=\"background-color: aqua; \">"))
+      # "</span><span style=\"background-color: initial; color: initial; font-weight: normal; opacity: 1.0; font-style: normal; text-decoration: none; display: inline; background-color: aqua; \">"))
 
   end
 

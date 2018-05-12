@@ -1,6 +1,9 @@
 module Chaha
   # Note: this is only concerned with escape codes
   # related to text formatting
+  class InvalidEscapeCode < Exception
+
+  end
   class EscapeCode
 
     BASIC_FOREGROUND_COLOR_LOOKUP={
@@ -369,14 +372,20 @@ module Chaha
     getter foreground_color
     getter background_color
     getter styles
+    getter string
 
     @foreground_color : String?
     @background_color : String?
     @styles           : Array(Int32)
 
-    def initialize(string)
-      if string.size < 3 || string[0] != '[' || string[-1] != 'm'
-        raise "Invalid escape code: #{string.split("").inspect}"
+    def initialize(@string : String)
+      if @string.size < 3 || @string[0] != '[' || @string[-1] != 'm'
+        if @string != "[m"
+          raise InvalidEscapeCode.new("Invalid escape code: #{@string.split("").inspect}")
+        else
+          # really? was it so hard to write a damn zero?
+          @string = "[0m"
+        end
       end
       # if the string has a zero code in it that isn't part of
       # an 8 bit or rgb lookup then everything before it is useless data.
@@ -397,7 +406,7 @@ module Chaha
       # end
       # hell_regexp=".*(?<![34]8;5#{rgb})[;\[](0[;m])"
       hell_regexp=".*(?<![34]8;5|[34]8;2;\\d|[34]8;2;\\d;\\d|[34]8;2;\\d;\\d;\\d|[34]8;2;\\d;\\d;\\d\\d|[34]8;2;\\d;\\d;\\d\\d\\d|[34]8;2;\\d;\\d\\d|[34]8;2;\\d;\\d\\d;\\d|[34]8;2;\\d;\\d\\d;\\d\\d|[34]8;2;\\d;\\d\\d;\\d\\d\\d|[34]8;2;\\d;\\d\\d\\d|[34]8;2;\\d;\\d\\d\\d;\\d|[34]8;2;\\d;\\d\\d\\d;\\d\\d|[34]8;2;\\d;\\d\\d\\d;\\d\\d\\d|[34]8;2;\\d\\d|[34]8;2;\\d\\d;\\d|[34]8;2;\\d\\d;\\d;\\d|[34]8;2;\\d\\d;\\d;\\d\\d|[34]8;2;\\d\\d;\\d;\\d\\d\\d|[34]8;2;\\d\\d;\\d\\d|[34]8;2;\\d\\d;\\d\\d;\\d|[34]8;2;\\d\\d;\\d\\d;\\d\\d|[34]8;2;\\d\\d;\\d\\d;\\d\\d\\d|[34]8;2;\\d\\d;\\d\\d\\d|[34]8;2;\\d\\d;\\d\\d\\d;\\d|[34]8;2;\\d\\d;\\d\\d\\d;\\d\\d|[34]8;2;\\d\\d;\\d\\d\\d;\\d\\d\\d|[34]8;2;\\d\\d\\d|[34]8;2;\\d\\d\\d;\\d|[34]8;2;\\d\\d\\d;\\d;\\d|[34]8;2;\\d\\d\\d;\\d;\\d\\d|[34]8;2;\\d\\d\\d;\\d;\\d\\d\\d|[34]8;2;\\d\\d\\d;\\d\\d|[34]8;2;\\d\\d\\d;\\d\\d;\\d|[34]8;2;\\d\\d\\d;\\d\\d;\\d\\d|[34]8;2;\\d\\d\\d;\\d\\d;\\d\\d\\d|[34]8;2;\\d\\d\\d;\\d\\d\\d|[34]8;2;\\d\\d\\d;\\d\\d\\d;\\d|[34]8;2;\\d\\d\\d;\\d\\d\\d;\\d\\d|[34]8;2;\\d\\d\\d;\\d\\d\\d;\\d\\d\\d)[;[](0[;m])"
-      cleansed_string = string.sub( /#{hell_regexp}/, "\\1")
+      cleansed_string = @string.sub( /#{hell_regexp}/, "\\1")
       @styles = extract_styling(cleansed_string)
       @background_color = extract_background_color(cleansed_string)
       @foreground_color = extract_foreground_color(cleansed_string)
@@ -431,6 +440,7 @@ module Chaha
         str << generate_foreground_string(escape_code)
         str << "\">"
       end
+      span
     end
 
     private def generate_background_string(escape_code : EscapeCode?) : String
@@ -438,9 +448,11 @@ module Chaha
         if ! background_color.nil? && background_color != ""
           return "background-color: #{background_color}; "
         elsif !escape_code.nil?
-          ec = escape_code.as(EscapeCode)
-          if !ec.background_color.nil? && ec.background_color != ""
-            return "background-color: #{ec.background_color}; "
+          if ! is_zero_style?
+            ec = escape_code.as(EscapeCode)
+            if !ec.background_color.nil? && ec.background_color != ""
+              return "background-color: #{ec.background_color}; "
+            end
           end
         end
         ""
@@ -449,20 +461,28 @@ module Chaha
       if ! foreground_color.nil? && foreground_color != ""
          return "color: #{foreground_color}; "
       elsif ! escape_code.nil?
+        if ! is_zero_style?
           ec = escape_code.as(EscapeCode)
           if !ec.foreground_color.nil? && ec.foreground_color != ""
             return "color: #{ec.foreground_color}; "
           end
+        end
       end
       ""
     end
 
+    private def is_zero_style?() : Bool
+      (! (styles.size == 0 || styles.size > 0 && styles[0] != 0 ))
+    end
+
     private def generate_styles_string(styles : Array(Int32),
                                        escape_code : EscapeCode?) : String
-
+      if styles == [0]
+        return "";
+      end
       # styles has been cleansed of any styles that preceed the 0
       # (if present)
-      if (styles.size == 0 || styles.size > 0 && styles[0] != 0 ) && ! escape_code.nil?
+      if ! is_zero_style? && ! escape_code.nil?
         # continue on with any styles we don't trump
         styles += (escape_code.as(EscapeCode).styles - styles)
       end
@@ -526,7 +546,7 @@ module Chaha
       return extract_rgb_color(m) if ! m.nil?
       ints = extract_ints(string)
       if ints.size > 0 && ints.last == 0
-        return "none"
+        return "" # alternately could "initial"
       end
       foreground_ints = FOREGROUND_COLOR_INTS & ints
       if foreground_ints.size > 0
@@ -555,7 +575,7 @@ module Chaha
       # who knows
       ints = extract_ints(string)
       if ints.size > 0 && ints.last == 0
-        return "none"
+        return "" # alternately could "initial"
       end
       background_ints = BACKGROUND_COLOR_INTS & ints
       if background_ints.size > 0

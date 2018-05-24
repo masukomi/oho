@@ -3,6 +3,7 @@ Signal::INT.trap do
   exit 0
 end
 # END Handle ^C
+STDIN.read_timeout = 0.1
 
 require "option_parser"
 require "./chaha/*"
@@ -28,24 +29,28 @@ if File.basename(PROGRAM_NAME) != "crystal-run-spec.tmp"
 
   last_escape_code = nil.as(Chaha::EscapeCode?)
   c = Chaha::Converter.new({:bullshit=>true})
-  puts "<html><head><style>"
-  puts "body{background-color: #{background_color};
-  color: #{foreground_color};}"
-  puts "</style></head><body><pre>"
 
   line_count = 0
-  while (line = ARGF.gets) != nil
-  # while line = STDIN.raw &.gets
-  # STDIN.each_line do |line|
-  # while line = STDIN.gets
-    break if line.nil?
-    response, escape_code = c.process(line.as(String), last_escape_code)
-    puts response
-    last_escape_code = escape_code
-    line_count += 1
-    # printf "%s", "."
+  begin
+    while (line = ARGF.gets) != nil
+      break if line.nil?
+      if line_count == 0
+        puts "<html><head><style>"
+        puts "body{background-color: #{background_color};
+        color: #{foreground_color};}"
+        puts "</style></head><body><pre>"
+      end
+      response, escape_code = c.process(line.as(String), last_escape_code)
+      puts response
+      last_escape_code = escape_code
+      line_count += 1
+      # printf "%s", "."
+    end
+  rescue IO::Timeout
+    STDERR.puts parser
+    exit(1)
   end
-  puts "</pre></body></html>"
+  puts "</pre></body></html>" unless line_count == 0
 
   if line_count == 0
     STDERR.puts "No input encountered."

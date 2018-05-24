@@ -9,6 +9,9 @@ module Chaha
       reader = Char::Reader.new(string)
       first_char = true
       response = String.build do | str |
+        if ! escape_code.nil?
+          str << escape_code.as(EscapeCode).to_span(nil)
+        end
         while reader.has_next?
           # acquire the correct char to work with
           if ! first_char

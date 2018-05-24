@@ -13,5 +13,13 @@ describe Chaha::Converter do
     response.should(eq("<span style=\"color: red; \">hi</span>"))
 
   end
+
+  it "handles escape codes that terminate on subsequent lines" do
+    options = {:bullshit => true}
+    c = Chaha::Converter.new(options)
+    test_string = "\033[36mfoo\nbar\033[0m baz"
+    response, escape_code = c.process(test_string, nil)
+    response.should(eq("<span style=\"color: aqua; \">foo\n<br />bar</span><span style=\"\"> baz</span>"))
+  end
 end
 

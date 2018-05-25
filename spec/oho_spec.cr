@@ -1,6 +1,6 @@
 require "./spec_helper"
 
-describe Chaha do
+describe Oho do
   # TODO: Write tests
 
   it "works" do

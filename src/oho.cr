@@ -6,7 +6,7 @@ end
 STDIN.read_timeout = 0.1
 
 require "option_parser"
-require "./chaha/*"
+require "./oho/*"
 
 
 background_color="white"
@@ -14,7 +14,7 @@ foreground_color="black"
 
 if File.basename(PROGRAM_NAME) != "crystal-run-spec.tmp"
   parser = OptionParser.parse! do |parser|
-    parser.banner = "Usage: <some command> | chaha [-b black] > html_output.html"
+    parser.banner = "Usage: <some command> | oho [-b black] > html_output.html"
     parser.on("-b background", "--background=background", "sets the background color") { |color| background_color = color }
     parser.on("-f foreground", "--foreground=foreground", "sets the foreground color") { |color| foreground_color = color }
     parser.on("-d", "--dark", "dark mode") { foreground_color = "white"
@@ -27,8 +27,8 @@ if File.basename(PROGRAM_NAME) != "crystal-run-spec.tmp"
 
 
 
-  last_escape_code = nil.as(Chaha::EscapeCode?)
-  c = Chaha::Converter.new({:bullshit=>true})
+  last_escape_code = nil.as(Oho::EscapeCode?)
+  c = Oho::Converter.new({:bullshit=>true})
 
   line_count = 0
   begin
@@ -70,8 +70,8 @@ if File.basename(PROGRAM_NAME) != "crystal-run-spec.tmp"
   # end
 
   # puts ARGF.read
-  # converter = Chaha::Converter.new(ARGF.read)
-  # module Chaha
+  # converter = Oho::Converter.new(ARGF.read)
+  # module Oho
   #
   # end
 

@@ -1,6 +1,6 @@
 require "./escape_code"
 require "html"
-module Chaha
+module Oho
   class Converter
 
     def initialize(@options : Hash(Symbol, Bool))

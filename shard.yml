@@ -1,12 +1,12 @@
-name: chaha
+name: oho
 version: 0.1.0
 
 authors:
   - masukomi <masukomi@masukomi.org>
 
 targets:
-  chaha:
-    main: src/chaha.cr
+  oho:
+    main: src/oho.cr
 
 crystal: 0.23.1
 

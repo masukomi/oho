@@ -1,4 +1,4 @@
-module Chaha
+module Oho
   class Page
     def initialize(inline_styles : Bool)
 

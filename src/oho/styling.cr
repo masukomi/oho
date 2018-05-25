@@ -1,4 +1,4 @@
-module Chaha
+module Oho
   class Styling
     property old_foreground_color
     property foreground_color

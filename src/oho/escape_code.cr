@@ -1,4 +1,4 @@
-module Chaha
+module Oho
   # Note: this is only concerned with escape codes
   # related to text formatting
   class InvalidEscapeCode < Exception

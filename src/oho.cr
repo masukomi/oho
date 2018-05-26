@@ -47,7 +47,7 @@ if File.basename(PROGRAM_NAME) != "crystal-run-spec.tmp"
                         # in converter that's just waiting to use it.
 
   line_count = 0
-  begin
+    begin
     while (line = ARGF.gets) != nil
       break if line.nil?
       if line_count == 0
@@ -57,7 +57,11 @@ if File.basename(PROGRAM_NAME) != "crystal-run-spec.tmp"
 
         puts "<style>"
         puts "body{background-color: #{background_color};
-        color: #{foreground_color};}"
+        color: #{foreground_color};}
+        @media print {
+          @page { margin: 0; }
+          body { margin: 1.6cm; }
+        }"
         puts "</style></head><body><pre>"
       end
       response, escape_code = c.process(line.as(String), last_escape_code)

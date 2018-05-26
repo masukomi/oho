@@ -1,6 +1,8 @@
 #!/bin/sh
 STASHED=0
+VERSION="dev_version"
 if [ "$1" != "" ]; then 
+  VERSION=$1
   git stash save "snapshot: $(date)" 
   STASHED=$?
   if [ "$STASHED" == "0" ]; then 
@@ -13,6 +15,14 @@ git checkout HEAD src/oho.cr
 if [ $STASHED -eq 0 ]; then 
   git stash pop > /dev/null 2>&1
 fi
+
+version_dir="oho_$VERSION"
+rm -rf $version_dir
+mkdir $version_dir
+cp oho $version_dir/
+tar -czf $version_dir.tgz $version_dir
+rm -rf $version_dir
+
 
 # copy all the optional ones
 # rm -rf dylibs/*

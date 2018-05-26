@@ -11,15 +11,22 @@ require "./oho/*"
 
 background_color="white"
 foreground_color="black"
+title="terminal output"
 
 if File.basename(PROGRAM_NAME) != "crystal-run-spec.tmp"
   parser = OptionParser.parse! do |parser|
-    parser.banner = "Usage: <some command> | oho [-d][-b <background color>][-f <foreground color>] > html_output.html"
-    parser.on("-b background", "--background=background", "sets the background color. Any CSS color will work.") { |color| background_color = color }
-    parser.on("-f foreground", "--foreground=foreground", "sets the foreground color. Any CSS color will work.") { |color| foreground_color = color }
-    parser.on("-d", "--dark", "dark mode") { foreground_color = "white"
+    parser.banner = "Usage: <some command> | oho [-d][-b <background color>][-f <foreground color>][-t <page title>] > html_output.html"
+    parser.on("-b background", "--background=background", "Sets the background color. Any CSS color will work.") { |color| background_color = color }
+    parser.on("-f foreground", "--foreground=foreground", "Sets the foreground color. Any CSS color will work.") { |color| foreground_color = color }
+    parser.on("-t title", "--title=title_string", "Sets the html page title."){|title_string| title=title_string}
+    parser.on("-d", "--dark", "Dark mode") { foreground_color = "white"
                                              background_color = "black"}
     parser.on("-h", "--help", "Show this help") { puts parser }
+    parser.invalid_option do |flag|
+      STDERR.puts("#{flag} is not a valid option")
+      STDERR.puts parser
+      exit(1)
+    end
   end
 
   #============================================================================
@@ -37,7 +44,7 @@ if File.basename(PROGRAM_NAME) != "crystal-run-spec.tmp"
     while (line = ARGF.gets) != nil
       break if line.nil?
       if line_count == 0
-        puts "<html><head><style>"
+        puts "<html><head><title>#{title}</title><style>"
         puts "body{background-color: #{background_color};
         color: #{foreground_color};}"
         puts "</style></head><body><pre>"

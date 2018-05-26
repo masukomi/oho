@@ -29,15 +29,17 @@ specific? You can use any valid css color for the foreground and background
 colors. See the usage output below.
 
 ```text
-Usage: <some command> | oho [-d] [-b <background color>] 
-                                 [-f <foreground color>] 
-                                 [-t <page title>] > html_output.html
+Usage: <some command> | oho [-d] [-v] 
+                            [-b <background color>]
+                            [-f <foreground color>]
+                            [-t <page title>] > html_output.html
     -d, --dark                       Dark mode
     -b background, --background=background
                                      Sets the background color. Any CSS color will work.
     -f foreground, --foreground=foreground
                                      Sets the foreground color. Any CSS color will work.
     -t title, --title=title_string   Sets the html page title.
+    -v, --version                    Show the version number
     -h, --help                       Show this help
 ```
 
@@ -72,7 +74,6 @@ docs/colortest.sh | oho -d | fenestro
 ```
 
 Voilà a window opens with your pretty HTML loaded into it. 
-
 
 
 ## Installation

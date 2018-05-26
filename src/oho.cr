@@ -14,21 +14,23 @@ foreground_color="black"
 
 if File.basename(PROGRAM_NAME) != "crystal-run-spec.tmp"
   parser = OptionParser.parse! do |parser|
-    parser.banner = "Usage: <some command> | oho [-b black] > html_output.html"
-    parser.on("-b background", "--background=background", "sets the background color") { |color| background_color = color }
-    parser.on("-f foreground", "--foreground=foreground", "sets the foreground color") { |color| foreground_color = color }
+    parser.banner = "Usage: <some command> | oho [-d][-b <background color>][-f <foreground color>] > html_output.html"
+    parser.on("-b background", "--background=background", "sets the background color. Any CSS color will work.") { |color| background_color = color }
+    parser.on("-f foreground", "--foreground=foreground", "sets the foreground color. Any CSS color will work.") { |color| foreground_color = color }
     parser.on("-d", "--dark", "dark mode") { foreground_color = "white"
                                              background_color = "black"}
     parser.on("-h", "--help", "Show this help") { puts parser }
   end
 
-
-
-
-
+  #============================================================================
 
   last_escape_code = nil.as(Oho::EscapeCode?)
   c = Oho::Converter.new({:bullshit=>true})
+                        # ^^^  so, i want to be able to tell the converter which
+                        # ISO format the code is in. aha had to deal with this
+                        # but i don't fully understand the requirements so
+                        # for now this is just a placeholder with some code 
+                        # in converter that's just waiting to use it.
 
   line_count = 0
   begin
@@ -44,7 +46,6 @@ if File.basename(PROGRAM_NAME) != "crystal-run-spec.tmp"
       puts response
       last_escape_code = escape_code
       line_count += 1
-      # printf "%s", "."
     end
   rescue IO::Timeout
     STDERR.puts parser
@@ -57,22 +58,5 @@ if File.basename(PROGRAM_NAME) != "crystal-run-spec.tmp"
     STDERR.puts parser
   end
 
-  # STDIN.raw do |stdin|
-  #   stdin.each_line do |line|
-  #     puts line
-  #   end
-  # end
-  # ARGF.each_line do |line|
-  #   puts line if line.chomp =~ /^9+$/
-  # end
-  # STDIN.each_line do |line|
-  #   puts line
-  # end
-
-  # puts ARGF.read
-  # converter = Oho::Converter.new(ARGF.read)
-  # module Oho
-  #
-  # end
-
 end
+

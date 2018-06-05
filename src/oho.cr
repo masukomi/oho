@@ -12,7 +12,7 @@ version_number="VERSION_NUMBER_HERE" # replaced by the build script
 background_color="white"
 foreground_color="black"
 title="terminal output"
-
+help_requested = false
 if File.basename(PROGRAM_NAME) != "crystal-run-spec.tmp"
   parser = OptionParser.parse! do |parser|
     parser.banner = "oho #{version_number}\nUsage: <some command> | oho [-d][-v] \
@@ -28,7 +28,10 @@ if File.basename(PROGRAM_NAME) != "crystal-run-spec.tmp"
       puts "oho version #{version_number}" 
       exit(0)
     }
-    parser.on("-h", "--help", "Show this help") { puts parser }
+    parser.on("-h", "--help", "Show this help") {
+      help_requested = true
+      puts parser 
+    }
     parser.invalid_option do |flag|
       STDERR.puts("#{flag} is not a valid option")
       STDERR.puts parser
@@ -70,12 +73,12 @@ if File.basename(PROGRAM_NAME) != "crystal-run-spec.tmp"
       line_count += 1
     end
   rescue IO::Timeout
-    STDERR.puts parser
+    STDERR.puts parser unless help_requested
     exit(1)
   end
   puts "</pre></body></html>" unless line_count == 0
 
-  if line_count == 0
+  if line_count == 0 && ! help_requested
     STDERR.puts "No input encountered."
     STDERR.puts parser
   end

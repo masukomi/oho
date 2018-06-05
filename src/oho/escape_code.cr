@@ -16,7 +16,7 @@ module Oho
       35 => "fuchsia",
       36 => "aqua",
       37 => "white",
-      39 => "initial" # default color
+      39 => "USE_DEFAULT" # default color
     }
     BASIC_BACKGROUND_COLOR_LOOKUP={
       # backgrounds
@@ -28,7 +28,7 @@ module Oho
       45 => "fuchsia",
       46 => "aqua",
       47 => "white",
-      49 => "initial", # default background color
+      49 => "USE_DEFAULT", # default background color
     }
     HIGH_INTENSITY_FOREGROUND_COLOR_LOOKUP = {
       90 => "#000000",
@@ -409,7 +409,13 @@ module Oho
       cleansed_string = @string.sub( /#{hell_regexp}/, "\\1")
       @styles = extract_styling(cleansed_string)
       @background_color = extract_background_color(cleansed_string)
+      if @background_color == "USE_DEFAULT"
+        @background_color = @options.fetch(:background_color, "initial")
+      end
       @foreground_color = extract_foreground_color(cleansed_string)
+      if @foreground_color == "USE_DEFAULT"
+        @foreground_color = @options.fetch(:foreground_color, "initial")
+      end
     end
 
     # we take in the last escap_code
@@ -443,7 +449,7 @@ module Oho
       span
     end
 
-    private def generate_background_string(escape_code : EscapeCode?) : String
+    def generate_background_string(escape_code : EscapeCode?) : String
 
         if ! background_color.nil? && background_color != ""
           return "background-color: #{background_color}; "
@@ -510,7 +516,8 @@ module Oho
             elsif effect == :foreground
               str << "color: #{@options.fetch(:foreground_color, "initial")}; "
             elsif effect == :background
-              str << "background-color: #{@options.fetch(:foreground_color, "initial")}; "
+              str << "background-color: #{@options.fetch(:foreground_color,
+                                                         "initial")}; "
             end
           end
         end
@@ -588,6 +595,7 @@ module Oho
           # that's actually a background 8 bit lookup
         end
       end
+
       ""
     end
 

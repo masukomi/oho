@@ -107,7 +107,7 @@ describe Oho::EscapeCode do
   it "should know about default background color" do
    ec = Oho::EscapeCode.new("[49m", default_options)
    ec.foreground_color.should(eq(""))
-   ec.background_color.should(eq("black"))
+   ec.background_color.should(eq("white"))
   end
   it "should know 256 color 49 isn't default foreground" do
    ec = Oho::EscapeCode.new("[38;5;49m", default_options)

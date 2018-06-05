@@ -3,7 +3,9 @@ require "html"
 module Oho
   class Converter
 
-    def initialize(@options : Hash(Symbol, Bool))
+    def initialize(@options : Hash(Symbol, String))
+      @options[:background_color] = "initial" unless @options.has_key?  :background_color
+      @options[:foreground_color] = "initial" unless @options.has_key?  :foreground_color
     end
     def process(string : String, escape_code : EscapeCode?) : Tuple(String, EscapeCode?)
       reader = Char::Reader.new(string)
@@ -102,7 +104,7 @@ module Oho
         # buffer[counter -1] = 0 # '\u{0}' not needed here
       end # end constructing escape_seq
       begin
-        return {EscapeCode.new(raw_escape_seq), reader}
+        return {EscapeCode.new(raw_escape_seq, @options), reader}
       rescue InvalidEscapeCode
         # we're going to pretend that didn't exist
         return {nil, reader}

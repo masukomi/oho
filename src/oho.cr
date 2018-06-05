@@ -42,12 +42,11 @@ if File.basename(PROGRAM_NAME) != "crystal-run-spec.tmp"
   #============================================================================
 
   last_escape_code = nil.as(Oho::EscapeCode?)
-  c = Oho::Converter.new({:bullshit=>true})
+  c = Oho::Converter.new({:background_color=>background_color,
+                          :foreground_color=>foreground_color})
                         # ^^^  so, i want to be able to tell the converter which
                         # ISO format the code is in. aha had to deal with this
                         # but i don't fully understand the requirements so
-                        # for now this is just a placeholder with some code 
-                        # in converter that's just waiting to use it.
 
   line_count = 0
     begin

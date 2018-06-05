@@ -378,7 +378,7 @@ module Oho
     @background_color : String?
     @styles           : Array(Int32)
 
-    def initialize(@string : String)
+    def initialize(@string : String, @options : Hash(Symbol, String))
       if @string.size < 3 || @string[0] != '[' || @string[-1] != 'm'
         if @string != "[m"
           raise InvalidEscapeCode.new("Invalid escape code: #{@string.split("").inspect}")
@@ -508,9 +508,9 @@ module Oho
             elsif effect == :hidden
               str << "display: #{is_reset ? "inline" : "none"}; "
             elsif effect == :foreground
-              str << "color: initial; "
+              str << "color: #{@options.fetch(:foreground_color, "initial")}; "
             elsif effect == :background
-              str << "background-color: initial; "
+              str << "background-color: #{@options.fetch(:foreground_color, "initial")}; "
             end
           end
         end

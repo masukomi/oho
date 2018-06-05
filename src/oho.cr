@@ -13,6 +13,7 @@ background_color="white"
 foreground_color="black"
 title="terminal output"
 help_requested = false
+additional_styling = ""
 if File.basename(PROGRAM_NAME) != "crystal-run-spec.tmp"
   parser = OptionParser.parse! do |parser|
     parser.banner = "oho #{version_number}\nUsage: <some command> | oho [-d][-v] \
@@ -23,6 +24,7 @@ if File.basename(PROGRAM_NAME) != "crystal-run-spec.tmp"
                                              background_color = "black"}
     parser.on("-b background", "--background=background", "Sets the background color. Any CSS color will work.") { |color| background_color = color }
     parser.on("-f foreground", "--foreground=foreground", "Sets the foreground color. Any CSS color will work.") { |color| foreground_color = color }
+    parser.on("-s styling", "--styling=styling", "Additional CSS styling. Will be stuck in a style block. ") { |styling| additional_styling = styling }
     parser.on("-t title", "--title=title_string", "Sets the html page title."){|title_string| title=title_string}
     parser.on("-v", "--version", "Show the version number"){
       puts "oho version #{version_number}" 
@@ -64,6 +66,7 @@ if File.basename(PROGRAM_NAME) != "crystal-run-spec.tmp"
           @page { margin: 0; }
           body { margin: 1.6cm; }
         }"
+        puts additional_styling unless additional_styling == ""
         puts "</style></head><body><pre>"
       end
       response, escape_code = c.process(line.as(String), last_escape_code)

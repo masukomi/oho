@@ -137,7 +137,16 @@ module Oho
     @styles           : Array(Int32)
 
     def initialize(@string : String, @options : Hash(Symbol, String))
+      if @string.includes?(";")
+        raise InvalidEscapeCode.new("T.426 escape sequences can't contain semicolons")
+      end
+      if @string.size < 6
+        raise InvalidEscapeCode.new("T.416 escape sequences must be >= 6 chars: #{@string} is not")
+      end
       @elements=@string[1..-2].split(":").map{|e| e == "" ? nil : e.to_i}
+      if @elements.size < 2
+        raise InvalidEscapeCode.new("not enough T.416 parameters")
+      end
       @background_color = extract_background_color(@elements)
       @foreground_color = extract_foreground_color(@elements)
       @styles = [] of Int32
@@ -162,8 +171,12 @@ module Oho
           str << "</span>"
         end
         str << "<span style=\""
-        str << generate_background_string(escape_code)
-        str << generate_foreground_string(escape_code)
+        if ! is_transparency_style?
+          str << generate_background_string(escape_code)
+          str << generate_foreground_string(escape_code)
+        else
+          str << generate_transparent_color_string(@elements, @options)
+        end
         str << "\">"
       end
       span
@@ -175,7 +188,7 @@ module Oho
       if bcs != ""
         return "background-color: #{bcs}; "
       elsif !escape_code.nil?
-        if ! is_zero_style?
+        if ! is_background_zero_style?
           ec = escape_code.as(EscapeCode)
           if ec.background_color.to_s != ""
             return "background-color: #{ec.background_color}; "
@@ -188,9 +201,9 @@ module Oho
     private def generate_foreground_string(escape_code : EscapeCode?) : String
       fcs = foreground_color.to_s
       if fcs != ""
-         return "color: #{fcs}; "
+        return "color: #{fcs}; "
       elsif ! escape_code.nil?
-        if ! is_zero_style?
+        if ! is_foreground_zero_style?
           ec = escape_code.as(EscapeCode)
           if ec.foreground_color.to_s != ""
             return "color: #{ec.foreground_color}; "
@@ -199,9 +212,19 @@ module Oho
       end
       ""
     end
-
-    private def is_zero_style?() : Bool
-      @elements[1] == 0
+    private def is_transparency_style?() : Bool
+      # we're guaranteed to have at least 2 elements in array
+      # via the initialize method
+      @elements[1] == 1
+    end
+    private def is_foreground_zero_style?() : Bool
+      # we're guaranteed to have at least 2 elements in array
+      # via the initialize method
+      @elements[0] == 38 && @elements[1] == 0
+    end
+    private def is_background_zero_style?() : Bool
+      raise InvalidEscapeCode.new("must contain at least 2 elements") if @elements.size < 2
+      @elements[0] == 48 && @elements[1] == 0
     end
 
     private def get_css_for_rgb(r : Int32, g : Int32, b : Int32) : String
@@ -220,6 +243,7 @@ module Oho
       color_string = ""
       # if [1] is 2-5 then [2] is color space id
       # TODO confirm array size is big enough to match expectations
+      # we have to handle transparent [1] == 1 separately
       if elements[1] == 2 # rgb
         color_string = extract_rgb_color(elements)
       elsif elements[1] == 3 # cmy
@@ -229,7 +253,7 @@ module Oho
       elsif elements[1] == 5 # lookup
         color_string = extract_lookup_color(elements)
       else
-        if elements[1] != 0 && elements[2] != 1
+        if elements[1] != 0 && elements[1] != 1
           raise InvalidEscapeCode.new("2nd element of #{@string} must be 0-5")
         end
       end
@@ -237,6 +261,26 @@ module Oho
       # hitting any of those, but what then? raise exception?
       # saying what?
       color_string
+    end
+
+    private def generate_transparent_color_string(elements : Array(Int32?), options : Hash(Symbol, String)) : String
+      # normally options contains a foreground color
+      # and background color
+      # we're going to set the foreground to equal the background
+      # this technique will maintain the sizing
+      choices = {
+        :background_color => "white",
+        :foreground_color => "black"
+      }.merge(options)
+      if elements[0] == 38
+        "color: #{choices[:background_color]}; background-color: #{choices[:background_color]}; "
+      elsif elements[0] == 48
+        "color: #{choices[:foreground_color]}; background-color: #{choices[:foreground_color]}; "
+      else
+        ""
+      end
+      # specifying the background color is redundant BUT
+      # I figure better safe than sorry
     end
 
     private def extract_rgb_color(elements : Array(Int32?)) : String

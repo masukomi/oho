@@ -79,7 +79,7 @@ describe Oho::Converter do
         reader = Char::Reader.new(seq)
         code, ignore = c.extract_next_escape_code('[',
                                    reader)
-        code.class.should(eq(Oho::T416ColorCode))
+        code.class.should(eq(Oho::T416ColorEscapeCode))
       end
     end
 

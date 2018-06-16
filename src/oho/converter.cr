@@ -1,7 +1,7 @@
 require "./escape_code"
 require "./color_escape_code"
 require "./non_display_escape_code"
-require "./t_416_color_code"
+require "./t_416_color_escape_code"
 require "html"
 module Oho
   class UnexpectedEndOfReader < Exception
@@ -87,7 +87,7 @@ module Oho
           if ! raw_escape_seq.includes? ":"
             return {ColorEscapeCode.new(raw_escape_seq, @options), reader}
           else
-            return {T416ColorCode.new(raw_escape_seq, @options), reader}
+            return {T416ColorEscapeCode.new(raw_escape_seq, @options), reader}
           end
         else
           # known things from http://ascii-table.com/ansi-escape-sequences.php

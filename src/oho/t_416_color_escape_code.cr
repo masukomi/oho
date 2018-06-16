@@ -89,7 +89,7 @@ module Oho
   # as well as ANSI colors and fonts!
   # see the T.416 document for details
 
-  class T416ColorCode < EscapeCode
+  class T416ColorEscapeCode < EscapeCode
 
     CONTENT_COLOR_TABLE_LOOKUP = {
       # left side is from

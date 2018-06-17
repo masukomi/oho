@@ -29,15 +29,13 @@ specific? You can use any valid css color for the foreground and background
 colors. See the usage output below.
 
 ```text
-Usage: <some command> | oho [-d] [-v] 
-                            [-b <background color>]
-                            [-f <foreground color>]
-                            [-t <page title>] > html_output.html
+Usage: <some command> | oho [-d][-v] [-b <background color>] [-f <foreground color>] [-t <page title>] > html_output.html
     -d, --dark                       Dark mode
     -b background, --background=background
                                      Sets the background color. Any CSS color will work.
     -f foreground, --foreground=foreground
                                      Sets the foreground color. Any CSS color will work.
+    -s styling, --styling=styling    Additional CSS styling. Will be stuck in a style block.
     -t title, --title=title_string   Sets the html page title.
     -v, --version                    Show the version number
     -h, --help                       Show this help

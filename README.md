@@ -1,7 +1,7 @@
 # oho
-(a spiritual successor to aha)
-
 Takes your colorful terminal output and converts it to HTML for sharing.
+(only html output)
+
 
 ![screenshot example](https://github.com/masukomi/oho/blob/master/docs/screenshot.jpg?raw=true)
 

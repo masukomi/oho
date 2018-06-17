@@ -5,8 +5,9 @@ Takes your colorful terminal output and converts it to HTML for sharing.
 
 ![screenshot example](https://github.com/masukomi/oho/blob/master/docs/screenshot.jpg?raw=true)
 
-That's just a sample. oho supports 3/4 bit (basic and high intensity), 8 bit, 
-& 24 bit color codes! That's 16,777,216 possible colors. Make your terminal
+That's just a sample. oho supports ANSI 3/4 bit (basic and high intensity), 8 bit, 
+& 24 bit color codes as well as ITU's T.416 / 8613-6  color codes! 
+That's 16,777,216 possible colors. Make your terminal
 output beautiful. oho will handle it just fine.
 
 ## Usage

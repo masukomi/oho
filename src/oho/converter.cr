@@ -136,6 +136,12 @@ module Oho
           # O    - Set single shift 3
           # [m   - Turn off character attributes
           #      ^ equivalent to [0m
+          #TODO: handle & test these
+          # http://www.ecma-international.org/publications/standards/Ecma-048.htm
+          # X    - start of string
+          # ^    - privacy message
+          # _    - application program command
+          # c    - reset to initial state
 
           return {NonDisplayEscapeCode.new(raw_escape_seq, @options), reader}
         end

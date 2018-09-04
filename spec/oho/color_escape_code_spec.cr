@@ -137,4 +137,29 @@ describe Oho::ColorEscapeCode do
    ec.background_color.should(eq(""))
   end
 
+  describe "rgb colors" do
+
+    it "should recognize rgb foreground colors" do
+      # breakdown
+      # normal foreground color codes go from 37 to 39 skipping 38
+      # 38 is bug unless followed by 5 or 2
+      # 38;2 -> indicates rgb color is about to follow
+      # thus rgb should be 252, 0, 37
+      escape_code_string = "[38;2;252;0;37m" # the \033 or \e will be stripped before
+      ec = Oho::ColorEscapeCode.new(escape_code_string, default_options)
+      ec.to_span(nil).should(eq(
+       "<span style=\"color: rgb(252,0,37); \">"))
+    end
+    it "should recognize rgb background colors" do
+      # breakdown
+      # normal background color codes go from 47 to 49 skipping 38
+      # 48 is bug unless followed by 5 or 2
+      # 48;2 -> indicates rgb color is about to follow
+      # thus rgb should be 252, 0, 37
+      escape_code_string = "[48;2;252;0;37m" # the \033 or \e will be stripped before
+      ec = Oho::ColorEscapeCode.new(escape_code_string, default_options)
+      ec.to_span(nil).should(eq(
+       "<span style=\"background-color: rgb(252,0,37); \">"))
+    end
+  end
 end

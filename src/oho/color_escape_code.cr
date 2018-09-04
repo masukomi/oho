@@ -547,7 +547,7 @@ module Oho
     private def extract_rgb_color(m : Regex::MatchData?) : String
         return "" if m.nil?
         rgb = m.as(Regex::MatchData)
-        "rgb(#{rgb[0]},#{rgb[1]},#{rgb[2]})"
+        "rgb(#{rgb[1]},#{rgb[2]},#{rgb[3]})"
     end
 
     private def extract_foreground_color(string : String) : String
@@ -557,6 +557,9 @@ module Oho
       m = string.match(/38;2;(\d+);(\d+);(\d+)/)
       return extract_rgb_color(m) if ! m.nil?
       ints = extract_ints(string)
+      return "" if ints[0] == 48 
+      # 48;2 and 48;5 are background colors
+      # 48 by itself is a bug
       if ints.size > 0 && ints.last == 0
         return "" # alternately could "initial"
       end
@@ -586,6 +589,9 @@ module Oho
       return extract_rgb_color(m) if ! m.nil?
       # who knows
       ints = extract_ints(string)
+      return "" if ints[0] == 38 
+      # 38;2 and 38;5 are background colors
+      # 38 by itself is a bug
       if ints.size > 0 && ints.last == 0
         return "" # alternately could "initial"
       end

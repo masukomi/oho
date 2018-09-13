@@ -14,7 +14,7 @@ foreground_color="black"
 title="terminal output"
 help_requested = false
 additional_styling = ""
-if File.basename(PROGRAM_NAME) != "crystal-run-spec.tmp"
+if File.basename(PROGRAM_NAME) !~ /crystal-run.*\.tmp/
   parser = OptionParser.parse! do |parser|
     parser.banner = "oho #{version_number}\nUsage: <some command> | oho [-d][-v] \
                             [-b <background color>] \
@@ -44,8 +44,10 @@ if File.basename(PROGRAM_NAME) != "crystal-run-spec.tmp"
   #============================================================================
 
   last_escape_code = nil.as(Oho::EscapeCode?)
-  c = Oho::Converter.new({:background_color=>background_color,
-                          :foreground_color=>foreground_color})
+  defaults=Hash(Symbol, String).new()
+  defaults[:background_color] = background_color
+  defaults[:foreground_color] = foreground_color
+  c = Oho::Converter.new(defaults)
                         # ^^^  so, i want to be able to tell the converter which
                         # ISO format the code is in. aha had to deal with this
                         # but i don't fully understand the requirements so

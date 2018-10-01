@@ -4,22 +4,22 @@ describe Oho::Converter do
   # TODO: Write tests
   default_options = {:background_color => "white",
                      :foreground_color => "black"}
-  # it "creates inline styles" do
-  #   c = Oho::Converter.new(default_options)
-  #   # STDERR.puts("\\033[31mhi\\033[0m")
-  #   test_string = "\033[31mhi\033[0m"
-  #   response, escape_code = c.process(test_string, nil)
-  #   # c.process(test_string).should(eq("<span class=\"red\">hi</span>"))
-  #   response.should(eq("<span style=\"color: red; \">hi</span>"))
-  #
-  # end
-  #
-  # it "handles escape codes that terminate on subsequent lines" do
-  #   c = Oho::Converter.new(default_options)
-  #   test_string = "\033[36mfoo\nbar\033[0m baz"
-  #   response, escape_code = c.process(test_string, nil)
-  #   response.should(eq("<span style=\"color: aqua; \">foo\n<br />bar</span><span style=\"\"> baz</span>"))
-  # end
+  it "creates inline styles" do
+    c = Oho::Converter.new(default_options)
+    # STDERR.puts("\\033[31mhi\\033[0m")
+    test_string = "\033[31mhi\033[0m"
+    response, escape_code = c.process(test_string, nil)
+    # c.process(test_string).should(eq("<span class=\"red\">hi</span>"))
+    response.should(eq("<span style=\"color: red; \">hi</span>"))
+
+  end
+
+  it "handles escape codes that terminate on subsequent lines" do
+    c = Oho::Converter.new(default_options)
+    test_string = "\033[36mfoo\nbar\033[0m baz"
+    response, escape_code = c.process(test_string, nil)
+    response.should(eq("<span style=\"color: aqua; \">foo\n<br />bar</span><span style=\"\"> baz</span>"))
+  end
   describe "#extract_next_escape_code" do
     # there are too damn many options to do a unit test for each one
     # looping over grouped arrays of them to make sure all are tested
@@ -33,6 +33,15 @@ describe Oho::Converter do
                                    reader)
         code.class.should(eq(Oho::ColorEscapeCode))
       end
+    end
+    it "stops at end of escape code" do
+      # test_string = "\033[31mhi\033[0m"
+      reader = Char::Reader.new("[31mhi\033[0m")
+      code, reader = c.extract_next_escape_code('[', reader)
+      reader.has_next?().should(eq(true))
+      reader.next_char.should(eq('h'))
+      code.as(Oho::EscapeCode).to_span(nil).should(eq("<span style=\"color: red; \">"))
+
     end
     it "returs ColorEscapeCode for color codes" do
       seqs = [

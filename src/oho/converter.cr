@@ -167,11 +167,12 @@ module Oho
 
       if first_char == '['
         zero_val_enders = ['H', 'f', 's', 'u', 'K']
-        val_enders = ['A', 'B', 'C', 'D', 's', 'h', 'l', 'p']
-        if seq_length = 2
+        val_enders = ['A', 'B', 'C', 'D', 's', 'h', 'l', 'p', 'm']
+        if seq_length == 2
           return true if zero_val_enders.includes? current_char
         elsif seq_length == 3
-          return true if current_char == 'j' # assuming prior was '2'
+          return true if ['j', 'm'].includes? current_char 
+          # if j assuming prior was '2'
         else # must be > 3
           return true if val_enders.includes? current_char
         end

@@ -1,0 +1,1 @@
+{"type":"Fixed","tickets":[],"description":"Corrected bug where the ends of escape sequences were not being correctly detected","tags":["bug"]}

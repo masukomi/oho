@@ -53,7 +53,7 @@ based systems have a tool called `script` installed on them.
 So, if I wanted to convert my fancy `git log` output on my mac I might say:
 
 ```
-script -q /dev/null "git log --stat -n 4" | oho
+script -q /dev/null git log --stat -n 4 | oho
       # | |         |                       ^ this great tool
       # | |         ^ the command to run 
       # | ^ we don't want the file it writes

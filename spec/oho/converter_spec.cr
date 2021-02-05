@@ -20,6 +20,19 @@ describe Oho::Converter do
     response, escape_code = c.process(test_string, nil)
     response.should(eq("<span style=\"color: aqua; \">foo\n<br />bar</span><span style=\"\"> baz</span>"))
   end
+  it "handles escape codes that terminate on subsequent lines with non-display codes in between" do
+    c = Oho::Converter.new(default_options)
+    test_string = "\033[36mfoo\033[K\nbar\033[0m"
+    response, escape_code = c.process(test_string, nil)
+    response.should(eq("<span style=\"color: aqua; \">foo\n<br />bar</span>"))
+  end
+  it "handles escape codes with non-display ones in between" do
+    c = Oho::Converter.new(default_options)
+    test_string = "\033[36mfoo\033[Kbar\033[0m"
+    response, escape_code = c.process(test_string, nil)
+    response.should(eq("<span style=\"color: aqua; \">foobar</span>"))
+
+  end
   describe "#extract_next_escape_code" do
     # there are too damn many options to do a unit test for each one
     # looping over grouped arrays of them to make sure all are tested
@@ -43,7 +56,7 @@ describe Oho::Converter do
       code.as(Oho::EscapeCode).to_span(nil).should(eq("<span style=\"color: red; \">"))
 
     end
-    it "returs ColorEscapeCode for color codes" do
+    it "returns ColorEscapeCode for color codes" do
       seqs = [
        "[m", # same as 0n
        "[0m",# reset styling and colors
@@ -59,6 +72,11 @@ describe Oho::Converter do
                                    reader)
         code.class.should(eq(Oho::ColorEscapeCode))
       end
+    end
+    it "doesn't get confused by non-display codes immediately following" do
+      reader = Char::Reader.new("[32m\033[K")
+      code, ignore = c.extract_next_escape_code('[', reader)
+      code.class.should(eq(Oho::ColorEscapeCode))
     end
     # The ITU's T.416 Information technology -
     # Open Document Architecture (ODA) and interchange format:

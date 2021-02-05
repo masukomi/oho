@@ -12,6 +12,7 @@ module Oho
     def initialize(@options : Hash(Symbol, String))
       @options[:background_color] = "initial" unless @options.has_key?  :background_color
       @options[:foreground_color] = "initial" unless @options.has_key?  :foreground_color
+      @last_display_escape_code = nil.as( EscapeCode? )
     end
     def process(string : String, escape_code : EscapeCode?) : Tuple(String, EscapeCode?)
       reader = Char::Reader.new(string)
@@ -35,7 +36,14 @@ module Oho
             # TODO: handle bad input better
             char, reader = get_next_char(reader) # if we're here there should be more following
             if ( char == '[' )
-              escape_code, reader = handle_left_square_bracket( str, char, reader, escape_code )
+              ec_for_handler = escape_code
+              if !escape_code.nil? && ! escape_code.as(EscapeCode).affects_display?
+                ec_for_handler = @last_display_escape_code
+              end
+              escape_code, reader = handle_left_square_bracket( str,
+                                                                char,
+                                                                reader,
+                                                                ec_for_handler)
               next
             elsif char == ']' # Operating System Command (OSC), ignoring for now
               char, reader = handle_right_square_bracket(char, reader)
@@ -52,7 +60,10 @@ module Oho
               handle_non_escape_chars(str, char, reader)
             end # end if not backspace
           end # END if char == '\e' || char.hash == 27
-        end
+          if escape_code.as(EscapeCode).affects_display?
+            @last_display_escape_code = escape_code
+          end
+        end # end while reader.has_next?
         str << "</span>" if ! escape_code.nil? && escape_code.as(EscapeCode).affects_display?
       end
 
@@ -67,8 +78,6 @@ module Oho
       counter = Int8.new(1)
       raw_escape_seq = String.build do | str2 |
         str2 << char.to_s # this is [ most of the time
-        # if first_char == [
-        #   then
         while ! last_char_in_escape?( first_char, char, counter)
           begin
             char, reader = get_next_char(reader)
@@ -80,11 +89,11 @@ module Oho
             break
           end
         end
-        # buffer[counter -1] = 0 # '\u{0}' not needed here
       end # end constructing escape_seq
+
       begin
         if raw_escape_seq.starts_with?("[") && raw_escape_seq.ends_with?("m")
-          if ! raw_escape_seq.includes? ":"
+          if ! raw_escape_seq.includes? ":" # if it's normal
             return {ColorEscapeCode.new(raw_escape_seq, @options), reader}
           else
             return {T416ColorEscapeCode.new(raw_escape_seq, @options), reader}
@@ -98,7 +107,7 @@ module Oho
           # [<val>D               - cursor backwards (val is num columns)
           # [s & [u               - save and restore cursor position
           # [2j                   - erase display & move cursor to 0,0
-          # [K                    - erase line
+          # [K                    - erase to end of line
           # [=<val>h [=<val>l     - set & reset mode
           # [<code>;<string>;...p - redefine keyboard key to specified string
           # AND more from http://ascii-table.com/ansi-escape-sequences-vt-100.php
@@ -235,10 +244,12 @@ module Oho
       {char, reader}
     end
 
-    private def handle_left_square_bracket(str         : String::Builder,
-                                           char        : Char,
-                                           reader      : Char::Reader,
-                                           escape_code : EscapeCode?) : Tuple(EscapeCode?, Char::Reader)
+    private def handle_left_square_bracket(
+                 str         : String::Builder,
+                 char        : Char,
+                 reader      : Char::Reader,
+                 escape_code : EscapeCode?) : Tuple(EscapeCode?, Char::Reader)
+      
       new_escape_code, reader = extract_next_escape_code(char, reader)
       unless new_escape_code.nil?
         str << new_escape_code.to_span(escape_code)

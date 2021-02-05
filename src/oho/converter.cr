@@ -37,13 +37,14 @@ module Oho
             char, reader = get_next_char(reader) # if we're here there should be more following
             if ( char == '[' )
               ec_for_handler = escape_code
-              if !escape_code.nil? && ! escape_code.as(EscapeCode).affects_display?
+              if ! is_display_code?(escape_code)
                 ec_for_handler = @last_display_escape_code
               end
               escape_code, reader = handle_left_square_bracket( str,
                                                                 char,
                                                                 reader,
                                                                 ec_for_handler)
+              update_last_display_escape_code(escape_code)
               next
             elsif char == ']' # Operating System Command (OSC), ignoring for now
               char, reader = handle_right_square_bracket(char, reader)
@@ -60,9 +61,8 @@ module Oho
               handle_non_escape_chars(str, char, reader)
             end # end if not backspace
           end # END if char == '\e' || char.hash == 27
-          if escape_code.as(EscapeCode).affects_display?
-            @last_display_escape_code = escape_code
-          end
+
+          update_last_display_escape_code(escape_code)
         end # end while reader.has_next?
         str << "</span>" if ! escape_code.nil? && escape_code.as(EscapeCode).affects_display?
       end
@@ -162,6 +162,16 @@ module Oho
 
     # -------------------------------------------------------------------------
     # shhhh. private.
+    private def update_last_display_escape_code(new_ec : EscapeCode?)
+      if is_display_code?(new_ec)
+        @last_display_escape_code = new_ec
+      end
+    end
+
+    private def is_display_code?(ec : EscapeCode?) : Bool
+      return ! ec.nil? && ec.as(EscapeCode).affects_display?
+    end
+    
     private def last_char_in_escape?(first_char : Char,
                                      current_char : Char,
                                     seq_length : Int8) : Bool
@@ -249,7 +259,7 @@ module Oho
                  char        : Char,
                  reader      : Char::Reader,
                  escape_code : EscapeCode?) : Tuple(EscapeCode?, Char::Reader)
-      
+
       new_escape_code, reader = extract_next_escape_code(char, reader)
       unless new_escape_code.nil?
         str << new_escape_code.to_span(escape_code)

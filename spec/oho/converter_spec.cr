@@ -20,12 +20,16 @@ describe Oho::Converter do
     response, escape_code = c.process(test_string, nil)
     response.should(eq("<span style=\"color: aqua; \">foo\n<br />bar</span><span style=\"\"> baz</span>"))
   end
+
   it "handles escape codes that terminate on subsequent lines with non-display codes in between" do
     c = Oho::Converter.new(default_options)
-    test_string = "\033[36mfoo\033[K\nbar\033[0m"
+    test_string = "7:7        belongs_to :thingy,\033[0;32;1m\033[K
+\033[0m7:8    \033[0;32;1m\033[0m               primary_key: :uuid,\033[0;32;1m\033[K"
     response, escape_code = c.process(test_string, nil)
-    response.should(eq("<span style=\"color: aqua; \">foo\n<br />bar</span>"))
+    response.should(eq("7:7        belongs_to :thingy,<span style=\"color: lime; \">\n<br /></span><span style=\"\">7:8    </span><span style=\"color: lime; \"></span><span style=\"\">               primary_key: :uuid,</span><span style=\"color: lime; \">"))
   end
+
+
   it "handles escape codes with non-display ones in between" do
     c = Oho::Converter.new(default_options)
     test_string = "\033[36mfoo\033[Kbar\033[0m"

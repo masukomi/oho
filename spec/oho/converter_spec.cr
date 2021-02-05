@@ -37,6 +37,19 @@ describe Oho::Converter do
     response.should(eq("<span style=\"color: aqua; \">foobar</span>"))
 
   end
+
+  it "removes empty spans that do nothing" do
+    c = Oho::Converter.new(default_options)
+    test_string = "\033[0mfoo\033[0m"
+    response, escape_code = c.process(test_string, nil)
+    response.should(eq("foo"))
+  end
+  it "removes spans that encapsulate nothing" do
+    c = Oho::Converter.new(default_options)
+    test_string = "\033[0mfoo\033[0m"
+    response, escape_code = c.process(test_string, nil)
+    response.should(eq("foo"))
+  end
   describe "#extract_next_escape_code" do
     # there are too damn many options to do a unit test for each one
     # looping over grouped arrays of them to make sure all are tested

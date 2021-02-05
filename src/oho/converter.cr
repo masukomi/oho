@@ -68,7 +68,11 @@ module Oho
       end
 
       # get rid of the [0m spans
-      {response.gsub("<span style=\"\"></span>", ""), escape_code}
+      cleaned_response = response.gsub(/<span style="">(.*?)<\/span>/, "\\1")
+      # get rid of the useless spans: <span style="whatever"></span>
+      cleaned_response = cleaned_response.gsub(/<span style=".*?"><\/span>/, "")
+      {cleaned_response, escape_code}
+
     end
     def extract_next_escape_code(char    : Char,
                                  reader  : Char::Reader) : Tuple(EscapeCode?,

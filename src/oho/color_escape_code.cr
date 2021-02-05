@@ -371,7 +371,7 @@ module Oho
     }
     getter foreground_color
     getter background_color
-    getter styles
+    getter styles : Array(Int32)
     getter string
 
     @foreground_color : String?
@@ -421,7 +421,7 @@ module Oho
     def affects_display?() : Bool
       true
     end
-    # we take in the last escap_code
+    # we take in the prior escape_code
     # in part to know we have to end the prior code
     # and in part to know what needs to be continued
     # if it is ended.

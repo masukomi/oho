@@ -15,7 +15,7 @@ title="terminal output"
 help_requested = false
 additional_styling = ""
 if File.basename(PROGRAM_NAME) !~ /crystal-run.*\.tmp/
-  parser = OptionParser.parse! do |parser|
+  parser = OptionParser.parse do |parser|
     parser.banner = "oho #{version_number}\nUsage: <some command> | oho [-d][-v] \
                             [-b <background color>] \
                             [-f <foreground color>] \
@@ -76,7 +76,7 @@ if File.basename(PROGRAM_NAME) !~ /crystal-run.*\.tmp/
       last_escape_code = escape_code
       line_count += 1
     end
-  rescue IO::Timeout
+  rescue IO::TimeoutError
     STDERR.puts parser unless help_requested
     exit(1)
   end

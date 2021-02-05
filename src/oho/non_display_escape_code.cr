@@ -2,7 +2,7 @@ module Oho
   class NonDisplayEscapeCode < EscapeCode
     getter foreground_color
     getter background_color
-    getter styles
+    getter styles : Array(Int32)
     @styles : Array(Int32)
     @foreground_color : String?
     @background_color : String?

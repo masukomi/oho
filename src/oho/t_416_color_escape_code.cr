@@ -129,7 +129,7 @@ module Oho
     getter foreground_color
     getter background_color
     getter string
-    getter styles
+    getter styles : Array(Int32)
 
     @foreground_color : String?
     @background_color : String?

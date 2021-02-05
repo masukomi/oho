@@ -2,7 +2,9 @@ module Oho
   class NonDisplayEscapeCode < EscapeCode
     getter foreground_color
     getter background_color
+    getter string
     getter styles : Array(Int32)
+
     @styles : Array(Int32)
     @foreground_color : String?
     @background_color : String?
@@ -17,6 +19,9 @@ module Oho
     end
     def to_span(escape_code : EscapeCode?) : String
       ""
+    end
+    def raw : String
+      @string
     end
   end
 end

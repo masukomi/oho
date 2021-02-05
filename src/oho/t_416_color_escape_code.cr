@@ -198,6 +198,10 @@ module Oho
       ""
     end
 
+    def raw() : String
+      @string
+    end
+
     private def generate_foreground_string(escape_code : EscapeCode?) : String
       fcs = foreground_color.to_s
       if fcs != ""

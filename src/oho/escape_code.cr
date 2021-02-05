@@ -8,5 +8,6 @@ module Oho
     abstract def affects_display?() : Bool
     abstract def to_span(escape_code : EscapeCode?) : String
     abstract def styles() : Array(Int32)
+    abstract def raw() : String
   end
 end

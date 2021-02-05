@@ -466,6 +466,10 @@ module Oho
         end
         ""
     end
+
+    def raw : String
+      @string
+    end
     private def generate_foreground_string(escape_code : EscapeCode?) : String
       if ! foreground_color.nil? && foreground_color != ""
          return "color: #{foreground_color}; "

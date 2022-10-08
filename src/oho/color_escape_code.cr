@@ -561,11 +561,10 @@ module Oho
       m = string.match(/38;2;(\d+);(\d+);(\d+)/)
       return extract_rgb_color(m) if ! m.nil?
       ints = extract_ints(string)
-      return "" if ints[0] == 48 
       # 48;2 and 48;5 are background colors
       # 48 by itself is a bug
-      if ints.size > 0 && ints.last == 0
-        return "" # alternately could "initial"
+      if ints.size > 0
+        return "" if ints.first == 48 || ints.last == 0
       end
       foreground_ints = FOREGROUND_COLOR_INTS & ints
       if foreground_ints.size > 0
@@ -593,11 +592,10 @@ module Oho
       return extract_rgb_color(m) if ! m.nil?
       # who knows
       ints = extract_ints(string)
-      return "" if ints[0] == 38 
       # 38;2 and 38;5 are background colors
       # 38 by itself is a bug
-      if ints.size > 0 && ints.last == 0
-        return "" # alternately could "initial"
+      if ints.size > 0
+        return "" if ints.first == 38 || ints.last == 0
       end
       background_ints = BACKGROUND_COLOR_INTS & ints
       if background_ints.size > 0

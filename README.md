@@ -95,6 +95,19 @@ crystal build src/oho.cr
 An `oho` executable will be created in the current directory. Just move that
 into your PATH and follow the Usage instructions.
 
+
+## Caveats
+There are many, _many_ escape sequences that are used in terminals. Oho supports ANSI 3/4 bit (basic and high intensity), 8 bit, 
+& 24 bit color codes as well as ITU's T.416 / 8613-6  color codes. 
+
+"Screen mode" escape sequences are _not_ supported. In general, this isn't going to be an issue.
+For example: `^[=5;7h` would tell a terminal to render as 320 x 200 in Black & White mode. 
+To support that would require reformatting your text, and making a judgement call about which 
+colors should be converted to black, and which to white. Currently oho does not address 
+formatting issues or make judgement calls about colors. If, however, you feel like implementing this, 
+Pull Requests will be happily accepted.
+
+
 ## Development
 
 If you're adding new functionality or fixing a bug in existing functionality

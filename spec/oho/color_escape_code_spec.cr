@@ -63,6 +63,41 @@ describe Oho::ColorEscapeCode do
       "</span><span style=\"font-weight: bold; opacity: 0.5; font-style: italic; text-decoration: underline; display: none; background-color: aqua; \">"))
   end
 
+  it "should not blow up when it encounters private use codes" do
+    ec = Oho::ColorEscapeCode.new("[?1h", default_options) #background
+    ec.to_span(nil).should(eq(""))
+  end
+
+  it "should not blow up when it encounters ? screen mode codes" do
+    ec = Oho::ColorEscapeCode.new("[?7h", default_options) #background
+    ec.to_span(nil).should(eq(""))
+  end
+
+  it "should not blow up when it encounters = screen mode codes" do
+    ec = Oho::ColorEscapeCode.new("[=1;7h", default_options) #background
+    ec.to_span(nil).should(eq(""))
+  end
+
+  it "should not blow up when it encounters = screen mode codes 2" do
+    ec = Oho::ColorEscapeCode.new("[=0h", default_options) #background
+    ec.to_span(nil).should(eq(""))
+  end
+
+  it "should not blow up when it encounters ? screen mode reset codes" do
+    ec = Oho::ColorEscapeCode.new("[?7l", default_options) #background
+    ec.to_span(nil).should(eq(""))
+  end
+
+  it "should not blow up when it encounters = screen mode reset codes" do
+    ec = Oho::ColorEscapeCode.new("[=1;7l", default_options) #background
+    ec.to_span(nil).should(eq(""))
+  end
+
+  it "should not blow up when it encounters = screen mode reset codes 2" do
+    ec = Oho::ColorEscapeCode.new("[=0l", default_options) #background
+    ec.to_span(nil).should(eq(""))
+  end
+
   it "0 resets all" do
     ec = Oho::ColorEscapeCode.new("[0m", default_options) #reset all the things
     prior_ec = Oho::ColorEscapeCode.new("[1;2;3;4;8;36;46m", default_options)

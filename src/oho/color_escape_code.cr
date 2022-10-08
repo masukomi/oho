@@ -373,18 +373,26 @@ module Oho
     getter background_color
     getter styles : Array(Int32)
     getter string
+    getter ignorable
 
     @foreground_color : String?
     @background_color : String?
     @styles           : Array(Int32)
+    @ignorable        : Bool
 
     def initialize(@string : String, @options : Hash(Symbol, String))
-      if @string.size < 3 || @string[0] != '[' || @string[-1] != 'm'
-        if @string != "[m"
-          raise InvalidEscapeCode.new("Invalid escape code: #{@string.split("").inspect}")
-        else
+      @ignorable = false
+      if @string.size < 3 || @string[0] != '[' || @string[-1] != 'm' || @string[1] == '?'
+        if @string == "[m"
           # really? was it so hard to write a damn zero?
           @string = "[0m"
+        elsif @string[1] == '?' || is_screen_mode?(@string)
+          #argh. ? marks it as "private use"
+          #      (a category set aside for implementation-specific features in the standard)
+          #      "screen mode" sequences are not supported.
+          @ignorable = true
+        else
+          raise InvalidEscapeCode.new("Invalid escape code: #{@string.split("").inspect}")
         end
       end
       # if the string has a zero code in it that isn't part of
@@ -405,21 +413,27 @@ module Oho
       #   end
       # end
       # hell_regexp=".*(?<![34]8;5#{rgb})[;\[](0[;m])"
-      hell_regexp=".*(?<![34]8;5|[34]8;2;\\d|[34]8;2;\\d;\\d|[34]8;2;\\d;\\d;\\d|[34]8;2;\\d;\\d;\\d\\d|[34]8;2;\\d;\\d;\\d\\d\\d|[34]8;2;\\d;\\d\\d|[34]8;2;\\d;\\d\\d;\\d|[34]8;2;\\d;\\d\\d;\\d\\d|[34]8;2;\\d;\\d\\d;\\d\\d\\d|[34]8;2;\\d;\\d\\d\\d|[34]8;2;\\d;\\d\\d\\d;\\d|[34]8;2;\\d;\\d\\d\\d;\\d\\d|[34]8;2;\\d;\\d\\d\\d;\\d\\d\\d|[34]8;2;\\d\\d|[34]8;2;\\d\\d;\\d|[34]8;2;\\d\\d;\\d;\\d|[34]8;2;\\d\\d;\\d;\\d\\d|[34]8;2;\\d\\d;\\d;\\d\\d\\d|[34]8;2;\\d\\d;\\d\\d|[34]8;2;\\d\\d;\\d\\d;\\d|[34]8;2;\\d\\d;\\d\\d;\\d\\d|[34]8;2;\\d\\d;\\d\\d;\\d\\d\\d|[34]8;2;\\d\\d;\\d\\d\\d|[34]8;2;\\d\\d;\\d\\d\\d;\\d|[34]8;2;\\d\\d;\\d\\d\\d;\\d\\d|[34]8;2;\\d\\d;\\d\\d\\d;\\d\\d\\d|[34]8;2;\\d\\d\\d|[34]8;2;\\d\\d\\d;\\d|[34]8;2;\\d\\d\\d;\\d;\\d|[34]8;2;\\d\\d\\d;\\d;\\d\\d|[34]8;2;\\d\\d\\d;\\d;\\d\\d\\d|[34]8;2;\\d\\d\\d;\\d\\d|[34]8;2;\\d\\d\\d;\\d\\d;\\d|[34]8;2;\\d\\d\\d;\\d\\d;\\d\\d|[34]8;2;\\d\\d\\d;\\d\\d;\\d\\d\\d|[34]8;2;\\d\\d\\d;\\d\\d\\d|[34]8;2;\\d\\d\\d;\\d\\d\\d;\\d|[34]8;2;\\d\\d\\d;\\d\\d\\d;\\d\\d|[34]8;2;\\d\\d\\d;\\d\\d\\d;\\d\\d\\d)[;[](0[;m])"
-      cleansed_string = @string.sub( /#{hell_regexp}/, "\\1")
-      @styles = extract_styling(cleansed_string)
-      @background_color = extract_background_color(cleansed_string)
-      if @background_color == "USE_DEFAULT"
-        @background_color = @options.fetch(:background_color, "initial")
-      end
-      @foreground_color = extract_foreground_color(cleansed_string)
-      if @foreground_color == "USE_DEFAULT"
-        @foreground_color = @options.fetch(:foreground_color, "initial")
+      if ! @ignorable
+        hell_regexp=".*(?<![34]8;5|[34]8;2;\\d|[34]8;2;\\d;\\d|[34]8;2;\\d;\\d;\\d|[34]8;2;\\d;\\d;\\d\\d|[34]8;2;\\d;\\d;\\d\\d\\d|[34]8;2;\\d;\\d\\d|[34]8;2;\\d;\\d\\d;\\d|[34]8;2;\\d;\\d\\d;\\d\\d|[34]8;2;\\d;\\d\\d;\\d\\d\\d|[34]8;2;\\d;\\d\\d\\d|[34]8;2;\\d;\\d\\d\\d;\\d|[34]8;2;\\d;\\d\\d\\d;\\d\\d|[34]8;2;\\d;\\d\\d\\d;\\d\\d\\d|[34]8;2;\\d\\d|[34]8;2;\\d\\d;\\d|[34]8;2;\\d\\d;\\d;\\d|[34]8;2;\\d\\d;\\d;\\d\\d|[34]8;2;\\d\\d;\\d;\\d\\d\\d|[34]8;2;\\d\\d;\\d\\d|[34]8;2;\\d\\d;\\d\\d;\\d|[34]8;2;\\d\\d;\\d\\d;\\d\\d|[34]8;2;\\d\\d;\\d\\d;\\d\\d\\d|[34]8;2;\\d\\d;\\d\\d\\d|[34]8;2;\\d\\d;\\d\\d\\d;\\d|[34]8;2;\\d\\d;\\d\\d\\d;\\d\\d|[34]8;2;\\d\\d;\\d\\d\\d;\\d\\d\\d|[34]8;2;\\d\\d\\d|[34]8;2;\\d\\d\\d;\\d|[34]8;2;\\d\\d\\d;\\d;\\d|[34]8;2;\\d\\d\\d;\\d;\\d\\d|[34]8;2;\\d\\d\\d;\\d;\\d\\d\\d|[34]8;2;\\d\\d\\d;\\d\\d|[34]8;2;\\d\\d\\d;\\d\\d;\\d|[34]8;2;\\d\\d\\d;\\d\\d;\\d\\d|[34]8;2;\\d\\d\\d;\\d\\d;\\d\\d\\d|[34]8;2;\\d\\d\\d;\\d\\d\\d|[34]8;2;\\d\\d\\d;\\d\\d\\d;\\d|[34]8;2;\\d\\d\\d;\\d\\d\\d;\\d\\d|[34]8;2;\\d\\d\\d;\\d\\d\\d;\\d\\d\\d)[;[](0[;m])"
+        cleansed_string = @string.sub( /#{hell_regexp}/, "\\1")
+        @styles = extract_styling(cleansed_string)
+        @background_color = extract_background_color(cleansed_string)
+        if @background_color == "USE_DEFAULT"
+          @background_color = @options.fetch(:background_color, "initial")
+        end
+        @foreground_color = extract_foreground_color(cleansed_string)
+        if @foreground_color == "USE_DEFAULT"
+          @foreground_color = @options.fetch(:foreground_color, "initial")
+        end
+      else # @ignorable == true
+        @foreground_color="USE_DEFAULT"
+        @background_color="USE_DEFAULT"
+        @styles=extract_styling("")
       end
     end
 
     def affects_display?() : Bool
-      true
+      @ignorable ? false : true
     end
     # we take in the prior escape_code
     # in part to know we have to end the prior code
@@ -430,6 +444,7 @@ module Oho
     # give the headaches to the  browser and anyone
     # reading the source. Headaches are bad.
     def to_span(escape_code : EscapeCode?) : String
+      return "" if @ignorable
       span = String.build do |str|
         if ! escape_code.nil? && escape_code.as(EscapeCode).affects_display?
           str << "</span>"
@@ -469,6 +484,38 @@ module Oho
 
     def raw : String
       @string
+    end
+
+    # Screen Modes
+    # Documented for future work, but not directly supported.
+    # ESC[=#;7h or
+    # ESC[=h or
+    # ESC[=0h or
+    # ESC[?7h
+    # put screen in indicated mode where # is:
+    # 0 	40 x 25 black & white
+    # 1 	40 x 25 color
+    # 2 	80 x 25 b&w
+    # 3 	80 x 25 color
+    # 4 	320 x 200 color graphics
+    # 5 	320 x 200 b & w graphics
+    # 6 	640 x 200 b & w graphics
+    # 7 	to wrap at end of line
+    # RESETTING....
+    # ESC[=#;7l or
+    # ESC[=l or
+    # ESC[=0l or
+    # ESC[?7l
+    # resets mode # set with above command
+    private def is_screen_mode?(sequence : String ) : Bool
+
+      # they start with [=Xh or [?7h
+      # they end with [=xl or [?7l
+      # start screen mode
+      return true if /^\[=\d?(?:h|l)$/ =~ @string
+      return true if /^\[?7(?:h|l)/    =~ @string
+      return true if /^\[=\d;7(?:h|l)/ =~ @string
+      false
     end
     private def generate_foreground_string(escape_code : EscapeCode?) : String
       if ! foreground_color.nil? && foreground_color != ""

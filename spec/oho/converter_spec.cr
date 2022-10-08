@@ -35,7 +35,27 @@ describe Oho::Converter do
     test_string = "\033[36mfoo\033[Kbar\033[0m"
     response, escape_code = c.process(test_string, nil)
     response.should(eq("<span style=\"color: aqua; \">foobar</span>"))
+  end
 
+  it "ignores screen mode sequences" do
+    c = Oho::Converter.new(default_options)
+    test_string = "\033[=1;7hfoo\033[=0l"
+    response, escape_code = c.process(test_string, nil)
+    response.should(eq("foo"))
+  end
+
+  it "really ignores screen mode sequences" do
+    c = Oho::Converter.new(default_options)
+    test_string="\033[?1h\033=\r\033[33mcommit abcd\r\033[K\033[?1l\033>"
+    response, escape_code = c.process(test_string, nil)
+    response.should(eq("\r<span style=\"color: yellow; \">commit abcd\r"))
+  end
+
+  it "ignores question mark screen mode sequences" do
+    c = Oho::Converter.new(default_options)
+    test_string = "\033[?7hfoo\033[?7l"
+    response, escape_code = c.process(test_string, nil)
+    response.should(eq("foo"))
   end
 
   it "removes empty spans that do nothing" do
@@ -44,6 +64,7 @@ describe Oho::Converter do
     response, escape_code = c.process(test_string, nil)
     response.should(eq("foo"))
   end
+
   it "removes spans that encapsulate nothing" do
     c = Oho::Converter.new(default_options)
     test_string = "\033[0mfoo\033[0m"

@@ -75,14 +75,14 @@ describe Oho::Converter do
     # there are too damn many options to do a unit test for each one
     # looping over grouped arrays of them to make sure all are tested
     c = Oho::Converter.new(default_options)
-    it "returns ColorEscapeCode for styling codes" do
+    it "returns AnsiColorEscapeCode for styling codes" do
       char = '['
-      Oho::ColorEscapeCode::FORMATTING_SEQ_INTS.each do |int|
+      Oho::AnsiColorEscapeCode::FORMATTING_SEQ_INTS.each do |int|
         str = "[#{int}m"
         reader = Char::Reader.new(str)
         code, ignore = c.extract_next_escape_code(char,
                                    reader)
-        code.class.should(eq(Oho::ColorEscapeCode))
+        code.class.should(eq(Oho::AnsiColorEscapeCode))
       end
     end
     it "stops at end of escape code" do
@@ -94,7 +94,7 @@ describe Oho::Converter do
       code.as(Oho::EscapeCode).to_span(nil).should(eq("<span style=\"color: red; \">"))
 
     end
-    it "returns ColorEscapeCode for color codes" do
+    it "returns AnsiColorEscapeCode for color codes" do
       seqs = [
        "[m", # same as 0n
        "[0m",# reset styling and colors
@@ -108,13 +108,13 @@ describe Oho::Converter do
         reader = Char::Reader.new(seq)
         code, ignore = c.extract_next_escape_code('[',
                                    reader)
-        code.class.should(eq(Oho::ColorEscapeCode))
+        code.class.should(eq(Oho::AnsiColorEscapeCode))
       end
     end
     it "doesn't get confused by non-display codes immediately following" do
       reader = Char::Reader.new("[32m\033[K")
       code, ignore = c.extract_next_escape_code('[', reader)
-      code.class.should(eq(Oho::ColorEscapeCode))
+      code.class.should(eq(Oho::AnsiColorEscapeCode))
     end
     # The ITU's T.416 Information technology -
     # Open Document Architecture (ODA) and interchange format:

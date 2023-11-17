@@ -2,7 +2,7 @@ require "./escape_code"
 module Oho
   # Note: this is only concerned with escape codes
   # related to text formatting
-  class ColorEscapeCode < EscapeCode
+  class AnsiColorEscapeCode < EscapeCode
 
     BASIC_FOREGROUND_COLOR_LOOKUP={
       # foregrounds

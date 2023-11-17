@@ -114,23 +114,23 @@ describe Oho::T416ColorEscapeCode do
 
     end
     it "outputs foregorund resets correctly" do
-      prior_ec = Oho::ColorEscapeCode.new("[32m", default_options)
+      prior_ec = Oho::AnsiColorEscapeCode.new("[32m", default_options)
       ec = Oho::T416ColorEscapeCode.new("[38:0m", default_options)
       ec.to_span(prior_ec).should(eq( "</span><span style=\"\">"))
     end
     it "retains background color on foreground reset" do
-      prior_ec = Oho::ColorEscapeCode.new("[42m", default_options)
+      prior_ec = Oho::AnsiColorEscapeCode.new("[42m", default_options)
       ec = Oho::T416ColorEscapeCode.new("[38:0m", default_options)
       ec.to_span(prior_ec).should(eq( "</span><span style=\"background-color: lime; \">"))
     end
     it "outputs background resets correctly" do
-      prior_ec = Oho::ColorEscapeCode.new("[42m", default_options)
+      prior_ec = Oho::AnsiColorEscapeCode.new("[42m", default_options)
       ec = Oho::T416ColorEscapeCode.new("[48:0m", default_options)
       ec.to_span(prior_ec).should(eq( "</span><span style=\"\">"))
 
     end
     it "retains foreground color on background reset" do
-      prior_ec = Oho::ColorEscapeCode.new("[32m", default_options)
+      prior_ec = Oho::AnsiColorEscapeCode.new("[32m", default_options)
       ec = Oho::T416ColorEscapeCode.new("[48:0m", default_options)
       ec.to_span(prior_ec).should(eq( "</span><span style=\"color: lime; \">"))
     end

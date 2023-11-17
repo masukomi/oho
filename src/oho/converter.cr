@@ -1,5 +1,5 @@
 require "./escape_code"
-require "./color_escape_code"
+require "./ansi_color_escape_code"
 require "./non_display_escape_code"
 require "./t_416_color_escape_code"
 require "html"
@@ -98,7 +98,7 @@ module Oho
       begin
         if raw_escape_seq.starts_with?("[") && raw_escape_seq.ends_with?("m")
           if ! raw_escape_seq.includes? ":" # if it's normal
-            return {ColorEscapeCode.new(raw_escape_seq, @options), reader}
+            return {AnsiColorEscapeCode.new(raw_escape_seq, @options), reader}
           else
             return {T416ColorEscapeCode.new(raw_escape_seq, @options), reader}
           end

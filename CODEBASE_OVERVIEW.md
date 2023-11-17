@@ -40,3 +40,8 @@ What's in the codebase: Because the goal is very focused, the codebase has remai
         The next notable bit is the `hell_regexp`. The short explanation is that limitations of Crystal's Regular Expression engine mean that a completely unreadable regular expression needs to be generated. An explanation of the problem + code for regenerating it if necessary can be found in the comment preceeding it. The regexp is an error handler for escape codes with a valid structure that don't correspond to anything in the lookup tables.
     
     -   `t_416_color_escape_code.cr` a handler for escape code adhering to the T.416 specification. Unlike ANSI escape codes, the T.416 engineers spent time designing a thoughtful, predictable, and generally well crafted approach to formatting terminal output. The world would be a slightly better place if it had become the dominant choice.
+
+## Notes
+Handling escape sequences correctly requires a bunch of esoteric knowledge related to what a bunch of essentially random numbers do. There are a ton of incomplete and handwavey docs out there about ANSI codes. Supporting ANSI is not so much a matter of adhering to a specification but deciding which parts of the innumerable things Xterm that you want to support to. It is the industry's gold standard for escape code support. 
+
+Understanding, maintaining, or contributing to this code base _should not_ require you to be steeped in that knowledge. I've tried to make everything as self-explanatory as possible. If you see something that is confusing or unclear, please file a bug. 
